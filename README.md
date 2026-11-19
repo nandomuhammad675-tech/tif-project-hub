@@ -126,3 +126,16 @@ tif-project-hub/
 - Password di-hash dengan `password_hash()` / `password_verify()`.
 - CSRF protection aktif pada semua form POST.
 - Role guard: mahasiswa ↔ admin terpisah.
+
+## 🎨 Tema Warna (Atlantic Ocean)
+
+Warna seluruh website mengikuti referensi desain "Atlantic Ocean": biru laut dan teal dengan aksen putih seperti buih.
+Semua warna terpusat di variabel `:root` pada `public/assets/css/app.css`, jadi mudah diganti.
+
+| Peran | Variabel | Warna |
+|---|---|---|
+| Biru laut paling gelap (sidebar admin) | `--ink` | `#021a26` |
+| Teal gelap | `--primary-dark` | `#024c5d` |
+| Teal utama (tombol, link) | `--primary` | `#037992` |
+| Aqua (aksen) | `--accent` | `#299cb8` |
+| Buih / latar terang | `--primary-light` | `#e3f3f7` |

@@ -59,7 +59,7 @@ set_exception_handler(function (Throwable $e): void {
         . '.box{background:#fff;border-radius:16px;padding:2rem;max-width:640px;box-shadow:0 10px 30px rgba(0,0,0,.08)}'
         . 'h1{margin:0 0 .5rem;font-size:1.4rem}p{color:#475569;line-height:1.6}'
         . 'pre{background:#0f172a;color:#e2e8f0;padding:1rem;border-radius:10px;overflow:auto;font-size:.8rem;white-space:pre-wrap}'
-        . 'a{color:#6366f1;font-weight:600}</style></head><body><div class="box"><h1>Ups, terjadi kesalahan</h1>'
+        . 'a{color:#037992;font-weight:600}</style></head><body><div class="box"><h1>Ups, terjadi kesalahan</h1>'
         . '<p>' . htmlspecialchars($hint ?: 'Halaman tidak dapat ditampilkan saat ini. Silakan coba lagi.', ENT_QUOTES, 'UTF-8') . '</p>';
     if ($debug) {
         echo '<pre>' . htmlspecialchars(get_class($e) . ': ' . $msg . "\n" . $e->getFile() . ':' . $e->getLine(), ENT_QUOTES, 'UTF-8') . '</pre>';

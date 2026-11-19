@@ -17,19 +17,19 @@ $showDemo = getenv('APP_ENV') === 'local';
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --text: #0f172a;
-            --muted: #64748b;
-            --border: #e2e8f0;
+            --primary: #037992;
+            --primary-dark: #025a70;
+            --text: #062534;
+            --muted: #587486;
+            --border: #dbe8ee;
             --danger: #b91c1c;
-            --grad: linear-gradient(135deg, #6366f1, #8b5cf6 60%, #ec4899 130%);
+            --grad: linear-gradient(135deg, #024c5d, #037992 55%, #1fa0bd 130%);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; }
         body {
             font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #4338ca 0%, #6366f1 40%, #8b5cf6 75%, #ec4899 120%);
+            background: linear-gradient(160deg, #021624 0%, #024c5d 42%, #037992 78%, #299cb8 120%);
             background-attachment: fixed;
             min-height: 100vh;
             display: flex;
@@ -43,7 +43,7 @@ $showDemo = getenv('APP_ENV') === 'local';
         /* Bola cahaya dekoratif */
         body::before, body::after { content: ''; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
         body::before { width: 520px; height: 520px; top: -180px; right: -120px; background: radial-gradient(circle, rgba(255,255,255,.25), transparent 70%); animation: floaty 8s ease-in-out infinite; }
-        body::after { width: 460px; height: 460px; bottom: -200px; left: -140px; background: radial-gradient(circle, rgba(6,182,212,.5), transparent 70%); animation: floaty 10s ease-in-out infinite reverse; }
+        body::after { width: 460px; height: 460px; bottom: -200px; left: -140px; background: radial-gradient(circle, rgba(41,182,208,.45), transparent 70%); animation: floaty 10s ease-in-out infinite reverse; }
         @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-24px); } }
         @keyframes rise { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: none; } }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -85,7 +85,7 @@ $showDemo = getenv('APP_ENV') === 'local';
             background: rgba(255,255,255,.98);
             border: 1px solid rgba(255,255,255,.6);
             border-radius: 26px;
-            box-shadow: 0 30px 80px rgba(15,23,42,.35);
+            box-shadow: 0 30px 80px rgba(2,37,51,.35);
             padding: 2.2rem 2rem 1.8rem;
         }
         .logo { text-align: center; margin-bottom: 1.6rem; }
@@ -95,7 +95,7 @@ $showDemo = getenv('APP_ENV') === 'local';
             display: inline-flex; align-items: center; gap: .85rem;
             background: #fff; border: 1px solid var(--border);
             padding: 10px 18px 10px 14px; border-radius: 16px;
-            box-shadow: 0 10px 26px rgba(99,102,241,.18);
+            box-shadow: 0 10px 26px rgba(3,121,146,.18);
             max-width: 100%;
         }
         .logo-emblems {
@@ -138,7 +138,7 @@ $showDemo = getenv('APP_ENV') === 'local';
             transition: border-color .2s, box-shadow .2s;
         }
         .field input::placeholder { color: #94a3b8; }
-        .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99,102,241,.15); }
+        .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(3,121,146,.15); }
         .field:focus-within .lead { color: var(--primary); }
         .field.has-toggle input { padding-right: 3rem; }
         .toggle {
@@ -161,13 +161,13 @@ $showDemo = getenv('APP_ENV') === 'local';
             padding: .85rem; border: none; border-radius: 12px;
             background: var(--grad); color: #fff;
             font: inherit; font-size: .97rem; font-weight: 700; cursor: pointer;
-            box-shadow: 0 10px 26px rgba(99,102,241,.45);
+            box-shadow: 0 10px 26px rgba(3,121,146,.45);
             display: flex; align-items: center; justify-content: center; gap: .6rem;
             transition: transform .2s, box-shadow .25s, opacity .2s;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(99,102,241,.6); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(3,121,146,.6); }
         .btn:active { transform: scale(.98); }
-        .btn:focus-visible { outline: 3px solid rgba(99,102,241,.4); outline-offset: 2px; }
+        .btn:focus-visible { outline: 3px solid rgba(3,121,146,.4); outline-offset: 2px; }
         .btn[disabled] { opacity: .8; cursor: wait; transform: none; }
         .btn .spinner { display: none; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
         .btn.loading .spinner { display: inline-block; }
@@ -185,7 +185,7 @@ $showDemo = getenv('APP_ENV') === 'local';
             border: 1.5px solid var(--border); background: #f8fafc; cursor: pointer; font: inherit;
             transition: border-color .2s, background .2s, transform .2s;
         }
-        .demo-btn:hover { border-color: var(--primary); background: #eef2ff; transform: translateY(-1px); }
+        .demo-btn:hover { border-color: var(--primary); background: #e3f3f7; transform: translateY(-1px); }
         .demo-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
         .demo-btn b { display: block; font-size: .82rem; color: var(--text); }
         .demo-btn span { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

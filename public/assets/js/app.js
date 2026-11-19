@@ -14,21 +14,7 @@
     if (tg) tg.addEventListener('click', function () { toggleSidebar(!sb.classList.contains('open')); });
     if (ov) ov.addEventListener('click', function () { toggleSidebar(false); });
 
-    /* ---------- Animate progress bars ---------- */
-    document.querySelectorAll('.progress > i[data-w]').forEach(function (el) {
-        requestAnimationFrame(function () { setTimeout(function () { el.style.width = el.dataset.w + '%'; }, 120); });
-    });
-
-    /* ---------- Count-up numbers ---------- */
-    document.querySelectorAll('[data-count]').forEach(function (el) {
-        var target = parseInt(el.dataset.count, 10) || 0, cur = 0;
-        var step = Math.max(1, Math.ceil(target / 30));
-        var t = setInterval(function () {
-            cur = Math.min(target, cur + step);
-            el.textContent = cur;
-            if (cur >= target) clearInterval(t);
-        }, 25);
-    });
+    /* Progress bar & count-up sekarang ditangani animations.js */
 
     /* ---------- Gallery + lightbox (halaman detail proyek) ---------- */
     var gal = document.querySelector('[data-gallery]');
@@ -43,12 +29,14 @@
 
         function show(i) {
             idx = (i + imgs.length) % imgs.length;
-            if (main) main.src = imgs[idx];
+            if (main) { main.src = imgs[idx]; swap(main); }
             thumbs.forEach(function (b, n) { b.classList.toggle('active', n === idx); });
-            if (lb && lb.classList.contains('open')) { lbImg.src = imgs[idx]; lbCount.textContent = (idx + 1) + ' / ' + imgs.length; }
+            if (lb && lb.classList.contains('open')) { lbImg.src = imgs[idx]; swap(lbImg); lbCount.textContent = (idx + 1) + ' / ' + imgs.length; }
         }
+        // Efek fade + zoom halus tiap ganti foto
+        function swap(img) { img.classList.remove('swap'); void img.offsetWidth; img.classList.add('swap'); }
         thumbs.forEach(function (b, n) { b.addEventListener('click', function () { show(n); }); });
-        function openLb() { if (!lb || !imgs.length) return; lb.classList.add('open'); lbImg.src = imgs[idx]; lbCount.textContent = (idx + 1) + ' / ' + imgs.length; document.body.style.overflow = 'hidden'; }
+        function openLb() { if (!lb || !imgs.length) return; lb.classList.add('open'); lbImg.src = imgs[idx]; swap(lbImg); lbCount.textContent = (idx + 1) + ' / ' + imgs.length; document.body.style.overflow = 'hidden'; }
         function closeLb() { if (!lb) return; lb.classList.remove('open'); document.body.style.overflow = ''; }
         var mainBox = gal.querySelector('.gallery-main');
         if (mainBox && imgs.length) mainBox.addEventListener('click', openLb);

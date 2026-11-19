@@ -11,7 +11,11 @@ function e(?string $value): string
 
 function asset(string $path): string
 {
-    return '/assets/' . ltrim($path, '/');
+    $path = ltrim($path, '/');
+    // ?v=<waktu ubah file> → browser otomatis ambil versi terbaru, tidak perlu Ctrl+F5
+    $file = dirname(__DIR__, 2) . '/public/assets/' . $path;
+    $v = is_file($file) ? '?v=' . filemtime($file) : '';
+    return '/assets/' . $path . $v;
 }
 
 function url(string $path = ''): string
