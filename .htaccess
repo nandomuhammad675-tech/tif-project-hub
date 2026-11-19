@@ -1,0 +1,15 @@
+# Dipakai bila hosting (mis. InfinityFree) menaruh project di htdocs/ dan
+# document root TIDAK bisa diarahkan ke public/. Semua request diteruskan ke public/.
+# Folder app/, config/, database/, .env tidak pernah ikut terlayani.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^$ public/ [L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<FilesMatch "^\.(env|git)">
+    Require all denied
+</FilesMatch>

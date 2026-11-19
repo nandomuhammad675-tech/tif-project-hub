@@ -1,0 +1,17 @@
+# Document root = folder public/ (Laragon / Apache)
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # File/folder yang benar-benar ada (css, js, gambar, upload) dilayani langsung
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Batas upload (aktif bila PHP berjalan sebagai Apache module)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 40M
+</IfModule>

@@ -1,0 +1,34 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+/vendor/
+
+# Storage
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# Foto proyek yang diunggah admin
+/public/uploads/projects/*
+!/public/uploads/projects/.gitkeep
+
+# Logs
+*.log
+/logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp
+/tmp/

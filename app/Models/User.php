@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Models;
+
+use App\Core\Model;
+
+/**
+ * User Model
+ * 
+ * Menangani data pengguna (mahasiswa & admin).
+ */
+class User extends Model
+{
+    protected string $table = 'users';
+
+    /**
+     * Cari user berdasarkan email
+     */
+    public function findByEmail(string $email): ?array
+    {
+        return $this->findBy('email', $email);
+    }
+
+    /**
+     * Cari user berdasarkan NIM
+     */
+    public function findByNim(string $nim): ?array
+    {
+        return $this->findBy('nim', $nim);
+    }
+
+    /**
+     * Verifikasi password
+     */
+    public function verifyPassword(string $password, string $hash): bool
+    {
+        return password_verify($password, $hash);
+    }
+
+    /**
+     * Hash password
+     */
+    public function hashPassword(string $password): string
+    {
+        return password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    /**
+     * Buat user baru (dengan hash password otomatis)
+     */
+    public function createUser(array $data): int
+    {
+        if (isset($data['password'])) {
+            $data['password'] = $this->hashPassword($data['password']);
+        }
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $data['updated_at'] = date('Y-m-d H:i:s');
+
+        return $this->create($data);
+    }
+
+    /**
+     * Ambil semua mahasiswa aktif
+     */
+    public function getStudents(): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, nim, name, email, class, semester, status, created_at 
+             FROM users 
+             WHERE role = 'mahasiswa' 
+             ORDER BY name ASC"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Hitung total mahasiswa
+     */
+    public function countStudents(): int
+    {
+        return $this->count("role = 'mahasiswa'");
+    }
+}
