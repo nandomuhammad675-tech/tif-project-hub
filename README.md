@@ -20,6 +20,7 @@ Konsep: **Marketplace Proyek + Sistem Tiket** (bukan CRUD kampus biasa).
 - Detail proyek + link GitHub & demo
 - Sistem tiket (buat, lihat, balas, timeline)
 - Profil + daftar proyek kelompok
+- **Project War**: klaim tiket proyek dari Beranda (satu tombol), tiket digital di Profil
 
 ### Admin
 - Dashboard statistik
@@ -27,6 +28,7 @@ Konsep: **Marketplace Proyek + Sistem Tiket** (bukan CRUD kampus biasa).
 - CRUD Proyek (publish/unpublish, anggota kelompok)
 - **Upload foto proyek** (multi foto, drag & drop, preview, pilih cover, hapus foto, **atur urutan foto**)
 - Manajemen Tiket (ubah status, balas, catatan internal)
+- **Project War**: semester aktif, jadwal war, daftar tiket klaim, tinjau pelanggaran
 
 ## Instalasi
 
@@ -40,6 +42,9 @@ Atau lewat HeidiSQL / phpMyAdmin di Laragon.
 
 > **Sudah punya database `tif_hub` dari versi sebelumnya?** Jangan import `migrations.sql` (akan menghapus data).
 > Cukup jalankan: `mysql -u root -p < database/add_project_images.sql` untuk menambah tabel foto.
+
+> **Project War / Klaim Tiket:** jalankan juga:
+> `mysql -u root -p tif_hub < database/migrations_war.sql`
 
 ### 2. Konfigurasi `.env`
 

@@ -5,7 +5,8 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Auth;
 use App\Core\Database;
-use App\Models\Project;
+use App\Models\ProjectClaim;
+use App\Models\WarSetting;
 
 class ProfileController extends Controller
 {
@@ -28,10 +29,22 @@ class ProfileController extends Controller
         $stmt->execute([$user['id']]);
         $myProjects = $stmt->fetchAll();
 
+        $claimModel = new ProjectClaim();
+        $warModel = new WarSetting();
+        $claims = $claimModel->getByUser((int) $user['id']);
+        $war = $warModel->current();
+        $activeClaim = null;
+        if ($war && !empty($war['active_semester_id'])) {
+            $activeClaim = $claimModel->findByUserAndSemester((int) $user['id'], (int) $war['active_semester_id']);
+        }
+
         $this->view('student/profile', [
-            'title'      => 'Profil Saya - TIF Hub',
-            'user'       => $user,
-            'myProjects' => $myProjects,
+            'title'       => 'Profil Saya - TIF Hub',
+            'user'        => $user,
+            'myProjects'  => $myProjects,
+            'claims'      => $claims,
+            'activeClaim' => $activeClaim,
+            'war'         => $war,
         ]);
     }
 }

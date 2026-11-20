@@ -42,6 +42,9 @@ $ico = [
             <a href="/admin/tickets" class="<?= $is('/admin/tickets') ? 'active' : '' ?>"><?= $ico['ticket'] ?> Tiket
                 <?php if ($openTickets > 0): ?><span class="count"><?= (int) $openTickets ?></span><?php endif; ?>
             </a>
+            <a href="/admin/war" class="<?= $is('/admin/war') ? 'active' : '' ?>"><?= $ico['projects'] ?> Project War</a>
+            <a href="/admin/claims" class="<?= $is('/admin/claims') ? 'active' : '' ?>"><?= $ico['ticket'] ?> Tiket Klaim</a>
+            <a href="/admin/violations" class="<?= $is('/admin/violations') ? 'active' : '' ?>"><?= $ico['users'] ?> Pelanggaran</a>
         </nav>
 
         <div class="side-label">Pintasan</div>

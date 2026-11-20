@@ -96,29 +96,10 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Mahasiswa mengambil proyek
-     */
     public function claim(string $id): void
     {
         Auth::requireStudent();
-
-        if (!$this->validateCsrf()) {
-            $this->backWithError('Token keamanan tidak valid.');
-        }
-
-        $result = $this->projectModel->claimProject((int) $id, (int) Auth::id());
-
-        if ($result['success']) {
-            Session::flash('success', $result['message']);
-        } else {
-            Session::flash('error', $result['message']);
-        }
-
-        $project = $this->projectModel->find((int) $id);
-        if ($project) {
-            $this->redirect('/projects/' . $project['slug']);
-        }
-        $this->redirect('/projects');
+        Session::flash('info', 'Klaim tiket hanya dapat dilakukan dari tombol KLAIM TIKET SEKARANG di Beranda.');
+        $this->redirect('/');
     }
 }

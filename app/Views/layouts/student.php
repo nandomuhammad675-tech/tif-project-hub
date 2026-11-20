@@ -39,6 +39,9 @@
     <?php if ($msg = \App\Core\Session::flash('error')): ?>
         <div class="alert alert-error">⚠️ <span><?= e($msg) ?></span></div>
     <?php endif; ?>
+    <?php if ($msg = \App\Core\Session::flash('info')): ?>
+        <div class="alert alert-info">ℹ️ <span><?= e($msg) ?></span></div>
+    <?php endif; ?>
     <?= $content ?? '' ?>
 </main>
 <footer class="site-footer">

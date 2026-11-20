@@ -16,6 +16,50 @@
     </div>
 </div>
 
+
+<div class="section-title"><span>🎫 Tiket Proyek Saya</span></div>
+<?php if (empty($claims)): ?>
+<div class="empty-state mb-3">
+    <div class="icon">🎫</div>
+    <p>Kamu belum memiliki tiket proyek pada semester ini.</p>
+    <p class="text-sm text-muted">Klaim tiket melalui tombol <strong>KLAIM TIKET SEKARANG</strong> di Beranda saat periode war aktif.</p>
+    <a href="/#klaim-tiket" class="btn btn-outline btn-sm mt-1">Ke Beranda</a>
+</div>
+<?php else: ?>
+<div class="card mb-3" style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.92rem;">
+        <thead>
+            <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
+                <th style="padding:.6rem;">ID Tiket</th>
+                <th style="padding:.6rem;">Proyek</th>
+                <th style="padding:.6rem;">Semester</th>
+                <th style="padding:.6rem;">Tanggal Klaim</th>
+                <th style="padding:.6rem;">Status</th>
+                <th style="padding:.6rem;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($claims as $c): ?>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+                <td style="padding:.6rem;"><code><?= e($c['ticket_code']) ?></code></td>
+                <td style="padding:.6rem;"><?= e($c['project_title']) ?></td>
+                <td style="padding:.6rem;"><?= e($c['semester_name'] ?? '-') ?><?= !empty($c['academic_year']) ? ' · ' . e($c['academic_year']) : '' ?></td>
+                <td style="padding:.6rem;"><?= e(format_datetime($c['claimed_at'])) ?></td>
+                <td style="padding:.6rem;">
+                    <?php if (($c['status'] ?? '') === 'claimed'): ?>
+                        <span class="badge badge-success">Terklaim</span>
+                    <?php else: ?>
+                        <span class="badge badge-secondary"><?= e($c['status'] ?? '-') ?></span>
+                    <?php endif; ?>
+                </td>
+                <td style="padding:.6rem;"><a href="/claims/<?= (int)$c['id'] ?>" class="btn btn-outline btn-sm">Lihat detail</a></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+<?php endif; ?>
+
 <div class="section-title"><span>Proyek Saya</span></div>
 <?php if (empty($myProjects)): ?>
 <div class="empty-state">

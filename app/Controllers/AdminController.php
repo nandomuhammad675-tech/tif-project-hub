@@ -10,6 +10,9 @@ use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\Semester;
+use App\Models\WarSetting;
+use App\Models\ProjectClaim;
+use App\Models\ClaimViolation;
 use App\Helpers\ImageUploader;
 
 class AdminController extends Controller
@@ -419,5 +422,105 @@ class AdminController extends Controller
 
         Session::flash('success', 'Tiket diperbarui.');
         $this->redirect('/admin/tickets/' . $id);
+    }
+
+    // ========== PROJECT WAR ==========
+    public function war(): void
+    {
+        Auth::requireAdmin();
+        $warModel = new WarSetting();
+        $claimModel = new ProjectClaim();
+        $war = $warModel->current();
+        $semesterId = $war['active_semester_id'] ?? null;
+        $claimedCount = $semesterId ? $claimModel->countClaimedInSemester((int) $semesterId) : 0;
+        $availableCount = $semesterId ? count($claimModel->getAvailableProjects((int) $semesterId)) : 0;
+
+        $this->view('admin/war/index', [
+            'title'          => 'Project War - Admin',
+            'user'           => Auth::user(),
+            'war'            => $war,
+            'warStatus'      => $warModel->statusLabel($war),
+            'semesters'      => (new Semester())->allOrdered(),
+            'claimedCount'   => $claimedCount,
+            'availableCount' => $availableCount,
+            'csrf'           => Session::getCsrfToken(),
+        ]);
+    }
+
+    public function warUpdate(): void
+    {
+        Auth::requireAdmin();
+        if (!$this->validateCsrf()) {
+            $this->backWithError('Token tidak valid.');
+            return;
+        }
+
+        $starts = trim($this->input('starts_at', ''));
+        $ends = trim($this->input('ends_at', ''));
+        $starts = $starts !== '' ? str_replace('T', ' ', $starts) . (strlen($starts) === 16 ? ':00' : '') : null;
+        $ends = $ends !== '' ? str_replace('T', ' ', $ends) . (strlen($ends) === 16 ? ':00' : '') : null;
+
+        $data = [
+            'is_open'            => (int) $this->input('is_open', 0),
+            'starts_at'          => $starts,
+            'ends_at'            => $ends,
+            'active_semester_id' => (int) $this->input('active_semester_id', 0) ?: null,
+        ];
+
+        (new WarSetting())->updateSettings($data, (int) Auth::id());
+        Session::flash('success', 'Pengaturan Project War disimpan.');
+        $this->redirect('/admin/war');
+    }
+
+    public function claims(): void
+    {
+        Auth::requireAdmin();
+        $semesterId = $this->query('semester_id', '');
+        $claimModel = new ProjectClaim();
+
+        $this->view('admin/claims/index', [
+            'title'     => 'Tiket Klaim - Admin',
+            'user'      => Auth::user(),
+            'claims'    => $claimModel->getAllAdmin($semesterId !== '' ? (int) $semesterId : null),
+            'semesters' => (new Semester())->allOrdered(),
+            'semesterId'=> $semesterId,
+        ]);
+    }
+
+    public function violations(): void
+    {
+        Auth::requireAdmin();
+        $status = $this->query('status', '');
+        $model = new ClaimViolation();
+
+        $this->view('admin/violations/index', [
+            'title'      => 'Pelanggaran Klaim - Admin',
+            'user'       => Auth::user(),
+            'violations' => $model->getAll($status !== '' ? $status : null),
+            'status'     => $status,
+            'csrf'       => Session::getCsrfToken(),
+        ]);
+    }
+
+    public function violationReview(string $id): void
+    {
+        Auth::requireAdmin();
+        if (!$this->validateCsrf()) {
+            $this->backWithError('Token tidak valid.');
+            return;
+        }
+
+        $status = $this->input('status', '');
+        $note = trim($this->input('admin_note', ''));
+        $penalty = $this->input('penalty_points', '');
+        $penaltyVal = $penalty === '' ? null : (float) $penalty;
+
+        $ok = (new ClaimViolation())->review((int) $id, $status, $penaltyVal, $note !== '' ? $note : null, (int) Auth::id());
+        if ($ok) {
+            Session::flash('success', 'Pelanggaran berhasil ditinjau.');
+        } else {
+            Session::flash('error', 'Gagal meninjau pelanggaran (mungkin sudah diproses).');
+        }
+        $this->redirect('/admin/violations');
     }
 }

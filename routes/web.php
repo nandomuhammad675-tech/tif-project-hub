@@ -18,12 +18,17 @@ $router->get('/logout',    'AuthController@logout',       ['auth']);
 // Student - Home
 $router->get('/', 'HomeController@index', ['student']);
 
-// Student - Projects
+// Student - Projects (katalog = galeri)
 $router->get('/projects',              'ProjectController@index', ['student']);
 $router->get('/projects/{slug}',       'ProjectController@show',  ['student']);
 $router->post('/projects/{id}/claim',  'ProjectController@claim', ['student']);
 
-// Student - Tickets
+// Student - Project War / Klaim Tiket
+$router->get('/claims/select',  'ClaimController@select', ['student']);
+$router->post('/claims',        'ClaimController@store',  ['student']);
+$router->get('/claims/{id}',    'ClaimController@show',   ['student']);
+
+// Student - Tickets (support)
 $router->get('/tickets',             'TicketController@index',  ['student']);
 $router->get('/tickets/create',      'TicketController@create', ['student']);
 $router->post('/tickets',            'TicketController@store',  ['student']);
@@ -52,7 +57,14 @@ $router->get('/admin/projects/{id}/edit',    'AdminController@projectEdit',    [
 $router->post('/admin/projects/{id}',        'AdminController@projectUpdate',  ['admin']);
 $router->post('/admin/projects/{id}/delete', 'AdminController@projectDelete',  ['admin']);
 
-// Admin - Tickets
+// Admin - Tickets (support)
 $router->get('/admin/tickets',       'AdminController@tickets',     ['admin']);
 $router->get('/admin/tickets/{id}',  'AdminController@ticketShow',  ['admin']);
 $router->post('/admin/tickets/{id}', 'AdminController@ticketReply', ['admin']);
+
+// Admin - Project War
+$router->get('/admin/war',                    'AdminController@war',              ['admin']);
+$router->post('/admin/war',                   'AdminController@warUpdate',        ['admin']);
+$router->get('/admin/claims',                 'AdminController@claims',           ['admin']);
+$router->get('/admin/violations',             'AdminController@violations',       ['admin']);
+$router->post('/admin/violations/{id}/review','AdminController@violationReview',  ['admin']);

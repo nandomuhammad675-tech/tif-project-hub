@@ -56,19 +56,15 @@
             <?php endif; ?>
         </ul>
 
-        <div class="flex gap-1 mt-2" style="flex-wrap:wrap;">
+                <div class="flex gap-1 mt-2" style="flex-wrap:wrap;">
             <?php if ($userHasThis): ?>
-                <span class="btn btn-primary" style="cursor:default;opacity:0.9;">✓ Anda mengerjakan proyek ini</span>
+                <span class="btn btn-primary" style="cursor:default;opacity:0.9;">✓ Anda terkait proyek ini</span>
             <?php elseif ($isTaken): ?>
-                <span class="btn btn-outline" style="cursor:default;opacity:0.7;">Proyek ini sudah dikerjakan</span>
-            <?php elseif (!empty($userProject)): ?>
-                <span class="btn btn-outline" style="cursor:default;opacity:0.7;">Anda sudah punya proyek lain</span>
+                <span class="badge badge-warning" style="align-self:center;">Sudah diklaim / dikerjakan</span>
             <?php else: ?>
-                <form method="POST" action="/projects/<?= (int)$project['id'] ?>/claim" onsubmit="return confirm('Ambil proyek ini? Anda hanya boleh mengerjakan satu proyek.')">
-                    <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
-                    <button type="submit" class="btn btn-primary">🎯 Ambil Proyek Ini</button>
-                </form>
+                <span class="badge badge-success" style="align-self:center;">Dokumentasi karya</span>
             <?php endif; ?>
+            <span class="text-sm text-muted" style="align-self:center;">Klaim tiket hanya lewat Beranda</span>
 
             <?php if ($project['github_url']): ?>
             <a href="<?= e($project['github_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline">📂 Repository GitHub</a>
