@@ -7,7 +7,6 @@ use App\Core\Auth;
 use App\Core\Session;
 use App\Models\User;
 use App\Models\Project;
-use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\Semester;
 use App\Models\WarSetting;
@@ -23,20 +22,14 @@ class AdminController extends Controller
 
         $userModel = new User();
         $projectModel = new Project();
-        $ticketModel = new Ticket();
 
         $this->view('admin/dashboard', [
             'title' => 'Admin Dashboard - TIF Hub',
             'user'  => Auth::user(),
             'recentProjects' => array_slice($projectModel->getAllAdmin(), 0, 5),
-            'recentTickets'  => array_slice($ticketModel->getAllAdmin(['status' => '', 'priority' => '', 'q' => '']), 0, 5),
             'stats' => [
                 'students'       => $userModel->countStudents(),
                 'projects'       => $projectModel->countAll(),
-                'tickets'        => $ticketModel->countAll(),
-                'tickets_open'   => $ticketModel->countByStatus('open'),
-                'tickets_process'=> $ticketModel->countByStatus('diproses'),
-                'tickets_done'   => $ticketModel->countByStatus('selesai'),
             ],
         ]);
     }
@@ -355,73 +348,6 @@ class AdminController extends Controller
         $projectModel->deleteWithImages((int) $id);
         Session::flash('success', 'Proyek dihapus.');
         $this->redirect('/admin/projects');
-    }
-
-    // ========== TICKETS ==========
-    public function tickets(): void
-    {
-        Auth::requireAdmin();
-        $filters = [
-            'status'   => $this->query('status', ''),
-            'priority' => $this->query('priority', ''),
-            'q'        => trim($this->query('q', '')),
-        ];
-
-        $this->view('admin/tickets/index', [
-            'title'   => 'Kelola Tiket - TIF Hub',
-            'user'    => Auth::user(),
-            'tickets' => (new Ticket())->getAllAdmin($filters),
-            'filters' => $filters,
-        ]);
-    }
-
-    public function ticketShow(string $id): void
-    {
-        Auth::requireAdmin();
-        $ticketModel = new Ticket();
-        $ticket = $ticketModel->findWithDetails((int) $id);
-
-        if (!$ticket) {
-            Session::flash('error', 'Tiket tidak ditemukan.');
-            $this->redirect('/admin/tickets');
-        }
-
-        $this->view('admin/tickets/show', [
-            'title'   => $ticket['ticket_code'] . ' - Admin',
-            'user'    => Auth::user(),
-            'ticket'  => $ticket,
-            'replies' => $ticketModel->getReplies((int) $id, true),
-            'csrf'    => Session::getCsrfToken(),
-        ]);
-    }
-
-    public function ticketReply(string $id): void
-    {
-        Auth::requireAdmin();
-        if (!$this->validateCsrf()) {
-            $this->backWithError('Token tidak valid.');
-        }
-
-        $ticketModel = new Ticket();
-        $ticket = $ticketModel->find((int) $id);
-        if (!$ticket) {
-            $this->redirect('/admin/tickets');
-        }
-
-        $message = trim($this->input('message', ''));
-        $status = $this->input('status', $ticket['status']);
-        $isInternal = (bool) $this->input('is_internal', 0);
-
-        if ($message !== '') {
-            $ticketModel->addReply((int) $id, (int) Auth::id(), $message, $isInternal);
-        }
-
-        if ($status !== $ticket['status']) {
-            $ticketModel->updateStatus((int) $id, $status, (int) Auth::id());
-        }
-
-        Session::flash('success', 'Tiket diperbarui.');
-        $this->redirect('/admin/tickets/' . $id);
     }
 
     // ========== PROJECT WAR ==========

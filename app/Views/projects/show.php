@@ -83,6 +83,18 @@
             <?php if ($project['demo_url']): ?>
             <a href="<?= e($project['demo_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline"><?= icon('external') ?> Lihat Demo</a>
             <?php endif; ?>
+
+            <?php if ($isWishlisted): ?>
+                <form method="POST" action="/wishlists/<?= (int)$project['id'] ?>/remove" onsubmit="return confirm('Hapus dari wishlist?')">
+                    <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
+                    <button type="submit" class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5;">★ Sudah di Wishlist</button>
+                </form>
+            <?php else: ?>
+                <form method="POST" action="/wishlists/<?= (int)$project['id'] ?>/add">
+                    <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
+                    <button type="submit" class="btn btn-outline">☆ Tambah ke Wishlist</button>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </div>

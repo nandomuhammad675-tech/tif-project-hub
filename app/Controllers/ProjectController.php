@@ -83,16 +83,20 @@ class ProjectController extends Controller
             }
         }
 
+        $wishlistModel = new \App\Models\Wishlist();
+        $isWishlisted = $wishlistModel->isWishlisted((int) Auth::id(), (int) $project['id']);
+
         $this->view('projects/show', [
-            'title'       => $project['title'] . ' - TIF Hub',
-            'user'        => Auth::user(),
-            'project'     => $project,
-            'members'     => $members,
-            'images'      => $this->projectModel->getImages((int) $project['id']),
-            'isTaken'     => $isTaken,
-            'userHasThis' => $userHasThis,
-            'userProject' => $userProject,
-            'csrf'        => Session::getCsrfToken(),
+            'title'        => $project['title'] . ' - TIF Hub',
+            'user'         => Auth::user(),
+            'project'      => $project,
+            'members'      => $members,
+            'images'       => $this->projectModel->getImages((int) $project['id']),
+            'isTaken'      => $isTaken,
+            'userHasThis'  => $userHasThis,
+            'userProject'  => $userProject,
+            'isWishlisted' => $isWishlisted,
+            'csrf'         => Session::getCsrfToken(),
         ]);
     }
 

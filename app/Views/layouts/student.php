@@ -23,7 +23,7 @@
     <div class="nav-links">
         <a href="/" class="<?= $uri === '/' ? 'active' : '' ?>">Beranda</a>
         <a href="/projects" class="<?= str_starts_with($uri, '/projects') ? 'active' : '' ?>">Proyek</a>
-        <a href="/tickets" class="<?= str_starts_with($uri, '/tickets') ? 'active' : '' ?>">Tiket</a>
+        <a href="/wishlists" class="<?= str_starts_with($uri, '/wishlists') ? 'active' : '' ?>">Wishlist</a>
         <a href="/profile" class="<?= str_starts_with($uri, '/profile') ? 'active' : '' ?>">Profil</a>
         <div class="user-chip">
             <span class="avatar"><?= e(initials($user['name'] ?? '')) ?></span>

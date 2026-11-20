@@ -28,12 +28,10 @@ $router->get('/claims/select',  'ClaimController@select', ['student']);
 $router->post('/claims',        'ClaimController@store',  ['student']);
 $router->get('/claims/{id}',    'ClaimController@show',   ['student']);
 
-// Student - Tickets (support)
-$router->get('/tickets',             'TicketController@index',  ['student']);
-$router->get('/tickets/create',      'TicketController@create', ['student']);
-$router->post('/tickets',            'TicketController@store',  ['student']);
-$router->get('/tickets/{id}',        'TicketController@show',   ['student']);
-$router->post('/tickets/{id}/reply', 'TicketController@reply',  ['student']);
+// Student - Wishlist
+$router->get('/wishlists',             'WishlistController@index',  ['student']);
+$router->post('/wishlists/{id}/add',   'WishlistController@add',    ['student']);
+$router->post('/wishlists/{id}/remove','WishlistController@remove', ['student']);
 
 // Student - Profile
 $router->get('/profile', 'ProfileController@index', ['student']);
@@ -56,11 +54,6 @@ $router->post('/admin/projects',             'AdminController@projectStore',   [
 $router->get('/admin/projects/{id}/edit',    'AdminController@projectEdit',    ['admin']);
 $router->post('/admin/projects/{id}',        'AdminController@projectUpdate',  ['admin']);
 $router->post('/admin/projects/{id}/delete', 'AdminController@projectDelete',  ['admin']);
-
-// Admin - Tickets (support)
-$router->get('/admin/tickets',       'AdminController@tickets',     ['admin']);
-$router->get('/admin/tickets/{id}',  'AdminController@ticketShow',  ['admin']);
-$router->post('/admin/tickets/{id}', 'AdminController@ticketReply', ['admin']);
 
 // Admin - Project War
 $router->get('/admin/war',                    'AdminController@war',              ['admin']);
