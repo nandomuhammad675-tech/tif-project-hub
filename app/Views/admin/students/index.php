@@ -1,6 +1,6 @@
 <div class="page-head">
     <div><h1>Kelola Mahasiswa</h1><p><?= count($students) ?> mahasiswa terdaftar</p></div>
-    <a href="/admin/students/create" class="btn btn-primary">＋ Tambah Mahasiswa</a>
+    <a href="/admin/students/create" class="btn btn-primary"><?= icon('plus') ?> Tambah Mahasiswa</a>
 </div>
 
 <div class="table-wrap">
@@ -26,7 +26,7 @@
             <td><?= e((string)($s['semester'] ?? '-')) ?></td>
             <td><?= status_badge($s['status']) ?></td>
             <td class="flex gap-1">
-                <a href="/admin/students/<?= $s['id'] ?>/edit" class="btn btn-sm btn-outline">✏️ Edit</a>
+                <a href="/admin/students/<?= $s['id'] ?>/edit" class="btn btn-sm btn-outline"><?= icon('pencil') ?> Edit</a>
             </td>
         </tr>
     <?php endforeach; ?>

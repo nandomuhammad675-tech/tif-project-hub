@@ -59,7 +59,7 @@
 
 <?php if (empty($projects)): ?>
 <div class="empty-state">
-    <div class="icon">🔍</div>
+    <div class="icon"><?= icon('search') ?></div>
     <p>Tidak ada proyek yang cocok dengan filter Anda.</p>
 </div>
 <?php else: ?>

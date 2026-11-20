@@ -141,7 +141,7 @@
             grid.appendChild(tile);
         });
         var msg = busy ? 'Memproses foto…' : (files.length ? files.length + ' foto baru siap diunggah (' + fmt(total()) + ')' : '');
-        if (warn) msg += (msg ? ' · ' : '') + '⚠ ' + warn;
+        if (warn) msg += (msg ? ' · ' : '') + warn;
         if (note) note.textContent = msg;
     }
 

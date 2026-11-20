@@ -163,7 +163,27 @@ img { max-width: 100%; display: block; }
 .project-card:hover .thumb::after { opacity: 1; }
 .project-card .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
 .project-card:hover .thumb img { transform: scale(1.08); }
-.thumb-icon { font-size: 3.4rem; filter: drop-shadow(0 6px 12px rgba(3,121,146,.3)); }
+/* ---------- Ikon SVG ---------- */
+.ico { width: 1.15em; height: 1.15em; flex-shrink: 0; vertical-align: -.2em; }
+.ico-sm { width: .95em; height: .95em; vertical-align: -.12em; }
+.btn .ico { width: 1.1em; height: 1.1em; vertical-align: 0; }
+.alert .ico { width: 1.2em; height: 1.2em; margin-top: .1rem; }
+.ticket-code { display: flex; align-items: center; gap: .35rem; }
+.ticket-code .ico { width: 1.05em; height: 1.05em; vertical-align: 0; }
+.zoom-hint { display: inline-flex; align-items: center; gap: .35rem; }
+.badge .ico { vertical-align: 0; }
+.cell-project small .ico { vertical-align: -.15em; }
+
+/* Ikon kategori pada thumbnail kartu (pengganti emoji) */
+.thumb-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 84px; height: 84px; border-radius: 26px; color: var(--primary);
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 10px 28px rgba(3,121,146,.16), inset 0 0 0 1px rgba(3,121,146,.14);
+}
+.thumb-icon .ico { width: 38px; height: 38px; stroke-width: 1.6; }
+.cell-thumb .thumb-icon, .mini-thumb .thumb-icon { width: 100%; height: 100%; border-radius: 0; background: none; box-shadow: none; }
+.cell-thumb .thumb-icon .ico, .mini-thumb .thumb-icon .ico { width: 24px; height: 24px; stroke-width: 1.8; }
 .thumb-status { position: absolute; top: .75rem; right: .75rem; z-index: 2; }
 .thumb-count {
     position: absolute; bottom: .7rem; left: .7rem; z-index: 2; background: rgba(11,16,32,.65); color: #fff;
@@ -339,7 +359,8 @@ table tbody tr:hover td { background: #f4f9fb; }
 }
 .gallery-main img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
 .gallery-main:hover img { transform: scale(1.04); }
-.gallery-main .thumb-icon { font-size: 5rem; }
+.gallery-main .thumb-icon { width: 120px; height: 120px; border-radius: 34px; }
+.gallery-main .thumb-icon .ico { width: 54px; height: 54px; }
 .gallery-main .zoom-hint { position: absolute; right: .8rem; bottom: .8rem; background: rgba(11,16,32,.65); color: #fff; font-size: .72rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px; backdrop-filter: blur(6px); }
 .gallery-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .6rem; }
 .gallery-thumbs button {
@@ -381,7 +402,8 @@ table tbody tr:hover td { background: #f4f9fb; }
 .section-title:first-child { margin-top: 0; }
 .section-title a { font-size: .85rem; font-weight: 700; }
 .empty-state { text-align: center; padding: 3.5rem 1.5rem; color: var(--muted); background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-lg); }
-.empty-state .icon { font-size: 3rem; margin-bottom: .7rem; }
+.empty-state .icon { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 22px; margin-bottom: 1rem; background: var(--primary-light); color: var(--primary); }
+.empty-state .icon .ico { width: 32px; height: 32px; stroke-width: 1.6; }
 
 .pagination { display: flex; gap: .4rem; justify-content: center; margin-top: 2rem; }
 .pagination a, .pagination span { min-width: 40px; text-align: center; padding: .5rem .8rem; border-radius: 12px; font-size: .86rem; font-weight: 700; border: 1px solid var(--border); color: var(--muted); background: var(--card); }

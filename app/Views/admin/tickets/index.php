@@ -32,7 +32,7 @@
 <div class="ticket-grid">
 <?php foreach ($tickets as $t): ?>
 <article class="ticket-card status-<?= e($t['status']) ?>">
-    <div class="ticket-code">🎫 <?= e($t['ticket_code']) ?></div>
+    <div class="ticket-code"><?= icon('ticket') ?> <?= e($t['ticket_code']) ?></div>
     <h3><?= e($t['title']) ?></h3>
     <div class="meta">
         <span><?= e($t['user_name']) ?> (<?= e($t['nim'] ?? '-') ?>)</span>
@@ -46,5 +46,5 @@
 <?php endforeach; ?>
 </div>
 <?php if (empty($tickets)): ?>
-<div class="empty-state"><div class="icon">🎫</div><p>Tidak ada tiket.</p></div>
+<div class="empty-state"><div class="icon"><?= icon('ticket') ?></div><p>Tidak ada tiket.</p></div>
 <?php endif; ?>

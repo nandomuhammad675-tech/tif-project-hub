@@ -1,7 +1,7 @@
 <a href="/tickets" class="text-sm text-muted">← Kembali ke Daftar Tiket</a>
 
 <div class="card mt-2 mb-3">
-    <div class="ticket-code" style="font-size:0.9rem;font-weight:700;color:var(--primary);">🎫 <?= e($ticket['ticket_code']) ?></div>
+    <div class="ticket-code" style="font-size:0.9rem;font-weight:700;color:var(--primary);"><?= icon('ticket') ?> <?= e($ticket['ticket_code']) ?></div>
     <h1 style="font-size:1.35rem;font-weight:800;margin:0.4rem 0;"><?= e($ticket['title']) ?></h1>
     <div class="flex gap-1 mb-2" style="flex-wrap:wrap;">
         <?= status_badge($ticket['status']) ?>

@@ -67,6 +67,9 @@ $showDemo = getenv('APP_ENV') === 'local';
             padding: .35rem .85rem; border-radius: 999px; font-size: .78rem; font-weight: 700;
             backdrop-filter: blur(6px);
         }
+        .ico { width: 1.15em; height: 1.15em; flex-shrink: 0; }
+        .demo-btn b { display: flex !important; align-items: center; gap: .35rem; }
+        .hint .ico { width: 1em; height: 1em; vertical-align: -.15em; margin-right: .2rem; }
         .brand h2 { font-size: 2.5rem; line-height: 1.12; font-weight: 800; letter-spacing: -1px; margin: 1.1rem 0 .9rem; }
         .brand > p { color: rgba(255,255,255,.85); line-height: 1.7; max-width: 30rem; }
         .features { list-style: none; margin-top: 1.8rem; display: grid; gap: .9rem; }
@@ -215,7 +218,7 @@ $showDemo = getenv('APP_ENV') === 'local';
 
         <!-- Panel brand: tampil di layar lebar -->
         <section class="brand" aria-hidden="false">
-            <span class="tag">🎓 Jurusan Teknologi Informasi</span>
+            <span class="tag"><?= icon('graduation') ?> Jurusan Teknologi Informasi</span>
             <h2>Wadah karya mahasiswa Teknik Informatika.</h2>
             <p>Temukan proyek, bentuk kelompok, dan pantau semuanya di satu tempat.</p>
             <ul class="features">
@@ -287,7 +290,7 @@ $showDemo = getenv('APP_ENV') === 'local';
                             <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         </button>
                     </div>
-                    <div class="hint" id="capsHint">⚠ Caps Lock sedang aktif</div>
+                    <div class="hint" id="capsHint"><?= icon('alert') ?> Caps Lock sedang aktif</div>
                 </div>
 
                 <button type="submit" class="btn" id="submitBtn">
@@ -305,10 +308,10 @@ $showDemo = getenv('APP_ENV') === 'local';
                 <h4>Akun demo</h4>
                 <div class="demo-grid">
                     <button type="button" class="demo-btn" data-email="admin@tifhub.local" data-pass="password123">
-                        <b>👑 Admin</b><span>admin@tifhub.local</span>
+                        <b><?= icon('shield') ?> Admin</b><span>admin@tifhub.local</span>
                     </button>
                     <button type="button" class="demo-btn" data-email="mahasiswa@tifhub.local" data-pass="password123">
-                        <b>🎓 Mahasiswa</b><span>mahasiswa@tifhub.local</span>
+                        <b><?= icon('graduation') ?> Mahasiswa</b><span>mahasiswa@tifhub.local</span>
                     </button>
                 </div>
                 <p class="demo-note">Klik salah satu untuk mengisi otomatis. Hanya tampil di lingkungan lokal.</p>

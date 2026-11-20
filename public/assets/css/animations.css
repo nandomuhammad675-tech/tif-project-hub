@@ -189,7 +189,6 @@ html.anim .hero.is-in [data-h="pop"] { animation: hPop .9s var(--spring) var(--h
 @keyframes imgSwap { from { opacity: 0; scale: 1.06; filter: blur(8px); } }
 .swap { animation: imgSwap .55s var(--ease); }
 .lightbox img.swap { animation: imgSwap .45s var(--ease); }
-.thumb-icon, .empty-state .icon { display: inline-block; }
 .empty-state .icon { animation: float 3.2s ease-in-out infinite; }
 .project-card:hover .thumb-icon { animation: float 1.6s ease-in-out infinite; }
 

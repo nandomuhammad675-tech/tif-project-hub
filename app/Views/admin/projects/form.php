@@ -45,7 +45,7 @@ foreach ($images as $im) { if ((int) $im['is_cover'] === 1) { $hasCover = true; 
                 ?>
                 <div class="img-tile <?= $isCover ? 'is-cover' : '' ?>" data-existing draggable="true">
                     <input type="hidden" name="image_order[]" value="<?= (int) $im['id'] ?>">
-                    <span class="cover-flag">★ COVER</span>
+                    <span class="cover-flag">COVER</span>
                     <div class="mv-group">
                         <button type="button" class="mv-btn" data-move="-1" aria-label="Geser ke kiri" title="Geser ke kiri">‹</button>
                         <button type="button" class="mv-btn" data-move="1" aria-label="Geser ke kanan" title="Geser ke kanan">›</button>
@@ -71,7 +71,7 @@ foreach ($images as $im) { if ((int) $im['is_cover'] === 1) { $hasCover = true; 
                 <p>atau <b>klik untuk memilih</b> · JPG, PNG, WEBP, GIF · maks <?= e($fmtMb($limits['file'])) ?>/foto · hingga <?= (int) $limits['count'] ?> foto</p>
             </div>
             <div class="img-grid" id="newImages"></div>
-            <div class="upload-note"><span id="uploadNote" role="status" aria-live="polite"></span><span>Foto otomatis dikecilkan agar upload cepat ✨<?= $limits['post'] > 0 ? ' · total maks ' . e($fmtMb($limits['post'])) . ' per simpan' : '' ?></span></div>
+            <div class="upload-note"><span id="uploadNote" role="status" aria-live="polite"></span><span>Foto otomatis dikecilkan agar upload cepat<?= $limits['post'] > 0 ? ' · total maks ' . e($fmtMb($limits['post'])) . ' per simpan' : '' ?></span></div>
             <?php if (empty($images)): ?>
             <span class="form-hint">Foto pertama yang diunggah otomatis menjadi cover. Anda bisa mengubahnya nanti.</span>
             <?php endif; ?>
@@ -144,15 +144,15 @@ foreach ($images as $im) { if ((int) $im['is_cover'] === 1) { $hasCover = true; 
                 <div class="form-group">
                     <label>Status Publikasi</label>
                     <select name="is_published" class="form-control">
-                        <option value="1" <?= ($project['is_published'] ?? 1) == 1 ? 'selected' : '' ?>>✅ Published — tampil di katalog</option>
-                        <option value="0" <?= ($project['is_published'] ?? 1) == 0 ? 'selected' : '' ?>>📝 Draft — disembunyikan</option>
+                        <option value="1" <?= ($project['is_published'] ?? 1) == 1 ? 'selected' : '' ?>>Published — tampil di katalog</option>
+                        <option value="0" <?= ($project['is_published'] ?? 1) == 0 ? 'selected' : '' ?>>Draft — disembunyikan</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">💾 Simpan Proyek</button>
+            <button type="submit" class="btn btn-primary"><?= icon('save') ?> Simpan Proyek</button>
             <a href="/admin/projects" class="btn btn-outline">Batal</a>
         </div>
     </div>

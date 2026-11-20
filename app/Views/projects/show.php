@@ -8,9 +8,9 @@
         <div class="gallery-main">
             <?php if ($imageUrls): ?>
                 <img src="<?= e($imageUrls[0]) ?>" alt="<?= e($project['title']) ?>">
-                <span class="zoom-hint">🔍 Klik untuk memperbesar</span>
+                <span class="zoom-hint"><?= icon('zoom-in') ?> Klik untuk memperbesar</span>
             <?php else: ?>
-                <span class="thumb-icon"><?= e(category_icon($project['category_icon'] ?? null)) ?></span>
+                <span class="thumb-icon"><?= category_icon($project['category_icon'] ?? null) ?></span>
             <?php endif; ?>
         </div>
         <?php if (count($imageUrls) > 1): ?>
@@ -58,7 +58,7 @@
 
         <div class="flex gap-1 mt-2" style="flex-wrap:wrap;">
             <?php if ($userHasThis): ?>
-                <span class="btn btn-primary" style="cursor:default;opacity:0.9;">✓ Anda mengerjakan proyek ini</span>
+                <span class="btn btn-primary" style="cursor:default;opacity:0.9;"><?= icon('check') ?> Anda mengerjakan proyek ini</span>
             <?php elseif ($isTaken): ?>
                 <span class="btn btn-outline" style="cursor:default;opacity:0.7;">Proyek ini sudah dikerjakan</span>
             <?php elseif (!empty($userProject)): ?>
@@ -66,22 +66,22 @@
             <?php else: ?>
                 <form method="POST" action="/projects/<?= (int)$project['id'] ?>/claim" onsubmit="return confirm('Ambil proyek ini? Anda hanya boleh mengerjakan satu proyek.')">
                     <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
-                    <button type="submit" class="btn btn-primary">🎯 Ambil Proyek Ini</button>
+                    <button type="submit" class="btn btn-primary"><?= icon('plus') ?> Ambil Proyek Ini</button>
                 </form>
             <?php endif; ?>
 
             <?php if ($project['github_url']): ?>
-            <a href="<?= e($project['github_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline">📂 Repository GitHub</a>
+            <a href="<?= e($project['github_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline"><?= icon('git-branch') ?> Repository GitHub</a>
             <?php endif; ?>
             <?php if ($project['demo_url']): ?>
-            <a href="<?= e($project['demo_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline">🚀 Lihat Demo</a>
+            <a href="<?= e($project['demo_url']) ?>" target="_blank" rel="noopener" class="btn btn-outline"><?= icon('external') ?> Lihat Demo</a>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
 <div class="card">
-    <h2 class="card-title">📝 Deskripsi Proyek</h2>
+    <h2 class="card-title">Deskripsi Proyek</h2>
     <div style="line-height:1.75;white-space:pre-line;"><?= e($project['description']) ?></div>
 </div>
 
