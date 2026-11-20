@@ -10,10 +10,10 @@ $svg = [
 ?>
 <div class="page-head">
     <div>
-        <h1>Halo, <?= e(explode(' ', trim($user['name']))[0]) ?> 👋</h1>
+        <h1>Halo, <?= e(explode(' ', trim($user['name']))[0]) ?></h1>
         <p>Ringkasan aktivitas TIF Hub hari ini.</p>
     </div>
-    <a href="/admin/projects/create" class="btn btn-primary">＋ Tambah Proyek</a>
+    <a href="/admin/projects/create" class="btn btn-primary"><?= icon('plus') ?> Tambah Proyek</a>
 </div>
 
 <div class="kpi-grid">
@@ -26,7 +26,7 @@ $svg = [
 <div class="dash-grid">
     <div class="card">
         <div class="card-title" style="justify-content:space-between;">
-            <span>🚀 Proyek Terbaru</span>
+            <span>Proyek Terbaru</span>
             <a href="/admin/projects" class="text-sm">Lihat semua →</a>
         </div>
         <?php if (empty($recentProjects)): ?>
@@ -48,7 +48,7 @@ $svg = [
     </div>
 
     <div class="card">
-        <div class="card-title">📊 Status Tiket</div>
+        <div class="card-title">Status Tiket</div>
         <div class="progress-row">
             <div class="lbl"><span>Open</span><span><?= (int) $stats['tickets_open'] ?></span></div>
             <div class="progress"><i data-w="<?= $pct((int) $stats['tickets_open']) ?>" style="width:0;background:linear-gradient(90deg,#3b82f6,#06b6d4)"></i></div>
@@ -62,7 +62,7 @@ $svg = [
             <div class="progress"><i data-w="<?= $pct((int) $stats['tickets_done']) ?>" style="width:0;background:linear-gradient(90deg,#10b981,#059669)"></i></div>
         </div>
 
-        <div class="card-title" style="margin-top:1.5rem;">🎫 Tiket Terbaru</div>
+        <div class="card-title" style="margin-top:1.5rem;">Tiket Terbaru</div>
         <?php if (empty($recentTickets)): ?>
             <p class="text-muted text-sm">Belum ada tiket.</p>
         <?php else: ?>

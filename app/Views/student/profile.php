@@ -63,7 +63,7 @@
 <div class="section-title"><span>Proyek Saya</span></div>
 <?php if (empty($myProjects)): ?>
 <div class="empty-state">
-    <div class="icon">📂</div>
+    <div class="icon"><?= icon('folder') ?></div>
     <p>Belum ada proyek yang terkait dengan akun Anda.</p>
 </div>
 <?php else: ?>
