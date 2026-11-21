@@ -57,23 +57,16 @@
         </ul>
 
                 <div class="flex gap-1 mt-2" style="flex-wrap:wrap;">
-            <?php if ($userHasThis): ?>
-<<<<<<< HEAD
-                <span class="btn btn-primary" style="cursor:default;opacity:0.9;">✓ Anda terkait proyek ini</span>
-=======
+            <?php if ($canEdit): ?>
                 <span class="btn btn-primary" style="cursor:default;opacity:0.9;"><?= icon('check') ?> Anda mengerjakan proyek ini</span>
->>>>>>> 4df4a391ccf29bbb02558fea3cbb6400b69af555
+                <a href="/projects/<?= (int)$project['id'] ?>/edit" class="btn btn-outline"><?= icon('pencil') ?> Edit Proyek</a>
             <?php elseif ($isTaken): ?>
                 <span class="badge badge-warning" style="align-self:center;">Sudah diklaim / dikerjakan</span>
             <?php else: ?>
-<<<<<<< HEAD
-                <span class="badge badge-success" style="align-self:center;">Dokumentasi karya</span>
-=======
                 <form method="POST" action="/projects/<?= (int)$project['id'] ?>/claim" onsubmit="return confirm('Ambil proyek ini? Anda hanya boleh mengerjakan satu proyek.')">
                     <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
                     <button type="submit" class="btn btn-primary"><?= icon('plus') ?> Ambil Proyek Ini</button>
                 </form>
->>>>>>> 4df4a391ccf29bbb02558fea3cbb6400b69af555
             <?php endif; ?>
             <span class="text-sm text-muted" style="align-self:center;">Klaim tiket hanya lewat Beranda</span>
 

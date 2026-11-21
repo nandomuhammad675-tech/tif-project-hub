@@ -22,6 +22,8 @@ $router->get('/', 'HomeController@index', ['student']);
 $router->get('/projects',              'ProjectController@index', ['student']);
 $router->get('/projects/{slug}',       'ProjectController@show',  ['student']);
 $router->post('/projects/{id}/claim',  'ProjectController@claim', ['student']);
+$router->get('/projects/{id}/edit',    'ProjectController@edit',  ['student']);
+$router->post('/projects/{id}/update', 'ProjectController@update', ['student']);
 
 // Student - Project War / Klaim Tiket
 $router->get('/claims/select',  'ClaimController@select', ['student']);

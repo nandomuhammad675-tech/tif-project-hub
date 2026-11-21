@@ -9,6 +9,26 @@ class Project extends Model
 {
     protected string $table = 'projects';
 
+    private const STUDENT_EDITABLE_FIELDS = [
+        'title',
+        'short_desc',
+        'description',
+        'technologies',
+        'github_url',
+        'demo_url',
+        'updated_at',
+    ];
+
+    public function updateStudentFields(int $projectId, array $data): bool
+    {
+        $allowed = array_intersect_key($data, array_flip(self::STUDENT_EDITABLE_FIELDS));
+        if (!$allowed) {
+            return false;
+        }
+
+        return $this->update($projectId, $allowed);
+    }
+
     public function getPublished(array $filters = [], string $sort = 'newest', int $limit = 12, int $offset = 0): array
     {
         $where = ['p.is_published = 1'];
@@ -135,6 +155,17 @@ class Project extends Model
         $stmt->execute([$id]);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+    public function hasActiveClaim(int $projectId, int $userId, int $semesterId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM project_claims
+             WHERE project_id = ? AND user_id = ? AND semester_id = ? AND status = 'claimed'
+             LIMIT 1"
+        );
+        $stmt->execute([$projectId, $userId, $semesterId]);
+        return (bool) $stmt->fetch();
     }
 
     public function getMembers(int $projectId): array
