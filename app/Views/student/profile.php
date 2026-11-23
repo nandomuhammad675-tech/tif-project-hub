@@ -1,73 +1,500 @@
-<h1 style="font-size:1.4rem;font-weight:800;margin-bottom:1.25rem;">Profil Saya</h1>
+<?php
+/**
+ * @var array      $user
+ * @var array      $myProjects
+ * @var array      $claims
+ * @var array|null $activeClaim
+ * @var array|null $war
+ */
+use App\Helpers\ImageUploader;
+use App\Core\Session;
 
-<div class="card mb-3">
-    <div class="flex gap-2" style="align-items:flex-start;">
-        <span class="avatar" style="width:76px;height:76px;font-size:1.6rem;"><?= e(initials($user['name'])) ?></span>
-        <div>
-            <h2 style="font-size:1.2rem;font-weight:700;"><?= e($user['name']) ?></h2>
-            <p class="text-muted text-sm"><?= e($user['email']) ?></p>
-            <div class="flex gap-1 mt-1" style="flex-wrap:wrap;">
-                <span class="badge badge-primary">NIM: <?= e($user['nim'] ?? '-') ?></span>
-                <span class="badge badge-secondary">Kelas: <?= e($user['class'] ?? '-') ?></span>
-                <span class="badge badge-secondary">Semester: <?= e((string)($user['semester'] ?? '-')) ?></span>
-                <span class="badge badge-info">Teknik Informatika</span>
+$avatarUrl   = ImageUploader::avatarUrl($user['avatar'] ?? null);
+$maxBytes    = ImageUploader::avatarMaxBytes();
+$maxMb       = round($maxBytes / 1048576, 1);
+$csrf        = Session::getCsrfToken();
+$projectCnt  = count($myProjects);
+$ticketCnt   = count($claims);
+?>
+<style>
+    .pf-head { margin-bottom: 1.4rem; }
+    .pf-head h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -.5px; }
+    .pf-head p { color: var(--muted); margin-top: .2rem; }
+
+    .pf-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+    .pf-side { position: sticky; top: 92px; }
+
+    /* ---------- Kartu profil ---------- */
+    .pf-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .pf-cover { height: 112px; background: var(--grad); position: relative; overflow: hidden; }
+    .pf-cover::before, .pf-cover::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); }
+    .pf-cover::before { width: 150px; height: 150px; right: -40px; top: -60px; }
+    .pf-cover::after { width: 80px; height: 80px; left: 30px; bottom: -40px; }
+    .pf-body { padding: 0 1.5rem 1.5rem; text-align: center; }
+
+    .pf-avatar-wrap { position: relative; width: 112px; height: 112px; margin: -56px auto 0; }
+    .pf-avatar {
+        width: 112px; height: 112px; border-radius: 50%; overflow: hidden;
+        border: 5px solid #fff; background: var(--grad); color: #fff;
+        display: grid; place-items: center; font-size: 2.2rem; font-weight: 800;
+        box-shadow: 0 8px 24px rgba(2,37,51,.18);
+    }
+    .pf-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pf-cam {
+        position: absolute; right: 2px; bottom: 4px; width: 36px; height: 36px; border-radius: 50%;
+        display: grid; place-items: center; cursor: pointer;
+        background: var(--primary); color: #fff; border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(3,121,146,.35); transition: transform .15s ease, background .15s ease;
+    }
+    .pf-cam:hover, .pf-cam:focus-visible { transform: scale(1.1); background: var(--primary-dark); outline: none; }
+    .pf-cam svg { width: 17px; height: 17px; }
+
+    .pf-actions { display: flex; justify-content: center; gap: .5rem; margin-top: .9rem; }
+    .pf-actions[hidden], .pf-error[hidden] { display: none; }
+    .pf-error { margin: .75rem 0 0; font-size: .82rem; font-weight: 600; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: .5rem .75rem; }
+    .pf-name { font-size: 1.3rem; font-weight: 800; margin-top: .9rem; letter-spacing: -.3px; }
+    .pf-email { color: var(--muted); font-size: .88rem; margin: .15rem 0 .7rem; word-break: break-all; }
+    .pf-hint { font-size: .75rem; color: var(--muted); margin-top: .7rem; }
+    .pf-remove { background: none; border: 0; cursor: pointer; font: inherit; font-size: .78rem; font-weight: 700; color: #b91c1c; padding: .25rem .5rem; margin-top: .75rem; }
+    .pf-remove:hover { text-decoration: underline; }
+
+    .pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin: 1.2rem 0; }
+    .pf-stat { background: #f1f7f9; border-radius: 14px; padding: .75rem .4rem; }
+    .pf-stat b { display: block; font-size: 1.35rem; font-weight: 800; color: var(--primary-dark); line-height: 1.1; }
+    .pf-stat span { font-size: .72rem; font-weight: 600; color: var(--muted); }
+
+    .pf-info { margin: 0; text-align: left; border-top: 1px dashed var(--border); padding-top: .4rem; }
+    .pf-info div { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid #eef4f7; font-size: .88rem; }
+    .pf-info div:last-child { border-bottom: 0; }
+    .pf-info dt { color: var(--muted); font-weight: 600; }
+    .pf-info dd { margin: 0; font-weight: 700; text-align: right; }
+
+    /* ---------- Konten kanan ---------- */
+    .pf-section { margin-bottom: 2rem; }
+    .pf-section-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .pf-section-head h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -.3px; display: flex; align-items: center; gap: .6rem; }
+    .pf-section-head h2 .count { font-size: .75rem; font-weight: 800; background: var(--primary-light); color: var(--primary-dark); border-radius: 999px; padding: .15rem .6rem; }
+
+    .pf-ticket {
+        display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+        background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); padding: 1rem 1.15rem; margin-bottom: .8rem;
+        position: relative; transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .pf-ticket::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: var(--primary); }
+    .pf-ticket:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .pf-ticket .t-ico { width: 46px; height: 46px; border-radius: 14px; flex: none; display: grid; place-items: center; background: var(--primary-light); color: var(--primary); }
+    .pf-ticket .t-ico .ico { width: 22px; height: 22px; }
+    .pf-ticket .t-main { flex: 1; min-width: 200px; }
+    .pf-ticket .t-code { display: inline-block; font-family: ui-monospace, Consolas, monospace; font-size: .75rem; font-weight: 700; color: var(--primary-dark); background: #eef6f9; border-radius: 8px; padding: .15rem .55rem; }
+    .pf-ticket h3 { font-size: 1rem; font-weight: 800; margin: .3rem 0 .15rem; }
+    .pf-ticket .t-meta { font-size: .8rem; color: var(--muted); }
+    .pf-ticket .t-side { display: flex; align-items: center; gap: .6rem; }
+
+
+    /* ---------- Pengatur foto (crop) ---------- */
+    .crop-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1rem; background: rgba(2,37,51,.62); backdrop-filter: blur(3px); }
+    .crop-modal[hidden] { display: none; }
+    .crop-dialog { width: 100%; max-width: 380px; background: #fff; border-radius: 22px; padding: 1.4rem; text-align: center; box-shadow: 0 30px 80px rgba(2,37,51,.4); }
+    .crop-dialog h3 { font-size: 1.15rem; font-weight: 800; }
+    .crop-sub { font-size: .83rem; color: var(--muted); margin-top: .25rem; }
+    .crop-stage { position: relative; width: min(300px, 100%); aspect-ratio: 1; margin: 1.1rem auto; overflow: hidden; border-radius: 16px; background: #0b1f2a; touch-action: none; cursor: grab; user-select: none; }
+    .crop-stage.is-drag { cursor: grabbing; }
+    .crop-stage img { position: absolute; max-width: none; user-select: none; pointer-events: none; }
+    .crop-mask { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle closest-side at center, transparent 99%, rgba(2,37,51,.62) 100%); }
+    .crop-mask::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.92); }
+    .crop-zoom { display: flex; align-items: center; gap: .6rem; padding: 0 .25rem; }
+    .crop-zoom input[type=range] { flex: 1; accent-color: var(--primary); }
+    .crop-zoom button { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; color: var(--primary-dark); }
+    .crop-zoom button:hover { border-color: var(--primary); color: var(--primary); }
+    .crop-btns { display: flex; gap: .5rem; justify-content: center; margin-top: 1.2rem; }
+    .crop-tip { font-size: .75rem; color: var(--muted); margin-top: .7rem; }
+
+
+    /* ---------- Pop up konfirmasi ---------- */
+    .crop-dialog { animation: cfPop .22s ease; }
+    @keyframes cfPop { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .crop-dialog { animation: none; } }
+    .cf-dialog { max-width: 360px; padding: 1.8rem 1.5rem 1.4rem; }
+    .cf-preview { position: relative; width: 148px; height: 148px; margin: 0 auto 1.1rem; border-radius: 50%; padding: 5px; background: var(--grad); box-shadow: 0 12px 30px rgba(3,121,146,.3); }
+    .cf-preview > div, .cf-preview img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: grid; place-items: center; border: 4px solid #fff; background: var(--grad); color: #fff; font-size: 2.2rem; font-weight: 800; }
+    .cf-badge { position: absolute; right: 2px; bottom: 6px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #10b981; color: #fff; border: 3px solid #fff; }
+    .cf-badge svg { width: 16px; height: 16px; }
+    .cf-badge.is-danger { background: #dc2626; }
+    .cf-btns { display: grid; gap: .55rem; margin-top: 1.3rem; }
+    .cf-btns .row { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .cf-btns .btn { width: 100%; justify-content: center; }
+    .cf-btns .btn[disabled] { opacity: .7; cursor: wait; }
+    .cf-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+    .cf-danger:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+
+    @media (max-width: 960px) {
+        .pf-layout { grid-template-columns: 1fr; }
+        .pf-side { position: static; }
+    }
+    @media (max-width: 520px) {
+        .pf-ticket .t-side { width: 100%; justify-content: space-between; }
+    }
+</style>
+
+<div class="pf-head">
+    <h1>Profil Saya</h1>
+    <p>Kelola foto profilmu dan pantau tiket serta proyek yang kamu kerjakan.</p>
+</div>
+
+<div class="pf-layout">
+    <!-- ===================== KOLOM KIRI: PROFIL ===================== -->
+    <aside class="pf-side">
+        <div class="pf-card">
+            <div class="pf-cover"></div>
+            <div class="pf-body">
+                <form id="avatar-form" method="POST" action="/profile/avatar" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="<?= e($csrf) ?>">
+                    <div class="pf-avatar-wrap">
+                        <div class="pf-avatar" id="avatar-preview">
+                            <?php if ($avatarUrl): ?>
+                                <img src="<?= e($avatarUrl) ?>" alt="Foto profil <?= e($user['name']) ?>">
+                            <?php else: ?>
+                                <?= e(initials($user['name'])) ?>
+                            <?php endif; ?>
+                        </div>
+                        <label for="avatar-input" class="pf-cam" tabindex="0" title="<?= $avatarUrl ? 'Ganti foto' : 'Tambah foto' ?>" aria-label="<?= $avatarUrl ? 'Ganti foto profil' : 'Tambah foto profil' ?>">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                        </label>
+                        <input type="file" id="avatar-input" name="avatar" accept="image/jpeg,image/png,image/webp" hidden>
+                    </div>
+
+                    <p class="pf-error" id="avatar-error" hidden></p>
+                </form>
+
+                <h2 class="pf-name"><?= e($user['name']) ?></h2>
+                <p class="pf-email"><?= e($user['email']) ?></p>
+                <span class="badge badge-primary">Mahasiswa Teknik Informatika</span>
+
+                <?php if ($avatarUrl): ?>
+                <form method="POST" action="/profile/avatar/remove" id="avatar-remove-form">
+                    <input type="hidden" name="_token" value="<?= e($csrf) ?>">
+                    <button type="button" class="pf-remove" id="avatar-remove-btn">Hapus foto</button>
+                </form>
+                <?php endif; ?>
+
+                <div class="pf-stats">
+                    <div class="pf-stat"><b><?= (int) $projectCnt ?></b><span>Proyek</span></div>
+                    <div class="pf-stat"><b><?= (int) $ticketCnt ?></b><span>Tiket</span></div>
+                    <div class="pf-stat"><b><?= e((string) ($user['semester'] ?? '-')) ?></b><span>Semester</span></div>
+                </div>
+
+                <dl class="pf-info">
+                    <div><dt>NIM</dt><dd><?= e($user['nim'] ?? '-') ?></dd></div>
+                    <div><dt>Kelas</dt><dd><?= e($user['class'] ?? '-') ?></dd></div>
+                    <div><dt>Semester</dt><dd><?= e((string) ($user['semester'] ?? '-')) ?></dd></div>
+                    <div><dt>Program Studi</dt><dd>Teknik Informatika</dd></div>
+                </dl>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===================== KOLOM KANAN: TIKET & PROYEK ===================== -->
+    <div class="pf-main">
+        <section class="pf-section">
+            <div class="pf-section-head">
+                <h2>Tiket Proyek Saya <?php if ($ticketCnt): ?><span class="count"><?= (int) $ticketCnt ?></span><?php endif; ?></h2>
+            </div>
+
+            <?php if (empty($claims)): ?>
+            <div class="empty-state">
+                <div class="icon"><?= icon('ticket') ?></div>
+                <p><strong>Belum ada tiket proyek.</strong></p>
+                <p class="text-sm">Klaim tiketmu lewat tombol <strong>KLAIM TIKETMU SEKARANG!</strong> di Beranda saat Project War dibuka.</p>
+                <a href="/#klaim-tiket" class="btn btn-primary btn-sm" style="margin-top:1rem;">Ke Beranda</a>
+            </div>
+            <?php else: ?>
+                <?php foreach ($claims as $c): ?>
+                <div class="pf-ticket">
+                    <span class="t-ico"><?= icon('ticket') ?></span>
+                    <div class="t-main">
+                        <span class="t-code"><?= e($c['ticket_code']) ?></span>
+                        <h3><?= e($c['project_title']) ?></h3>
+                        <div class="t-meta">
+                            <?= e($c['semester_name'] ?? '-') ?><?= !empty($c['academic_year']) ? ' · ' . e($c['academic_year']) : '' ?>
+                            · Diklaim <?= e(format_datetime($c['claimed_at'])) ?>
+                        </div>
+                    </div>
+                    <div class="t-side">
+                        <?php if (($c['status'] ?? '') === 'claimed'): ?>
+                            <span class="badge badge-success">Terklaim</span>
+                        <?php else: ?>
+                            <span class="badge badge-secondary"><?= e($c['status'] ?? '-') ?></span>
+                        <?php endif; ?>
+                        <a href="/claims/<?= (int) $c['id'] ?>" class="btn btn-outline btn-sm">Lihat detail</a>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </section>
+
+        <section class="pf-section">
+            <div class="pf-section-head">
+                <h2>Proyek Saya <?php if ($projectCnt): ?><span class="count"><?= (int) $projectCnt ?></span><?php endif; ?></h2>
+            </div>
+
+            <?php if (empty($myProjects)): ?>
+            <div class="empty-state">
+                <div class="icon"><?= icon('folder') ?></div>
+                <p><strong>Belum ada proyek.</strong></p>
+                <p class="text-sm">Proyek yang kamu kerjakan akan tampil di sini.</p>
+                <a href="/projects" class="btn btn-primary btn-sm" style="margin-top:1rem;">Jelajahi Proyek</a>
+            </div>
+            <?php else: ?>
+            <div class="project-grid">
+                <?php foreach ($myProjects as $p) { $opts = ['role' => $p['role_in_project']]; include __DIR__ . '/../partials/project_card.php'; } ?>
+            </div>
+            <?php endif; ?>
+        </section>
+    </div>
+</div>
+
+<div class="crop-modal" id="crop-modal" hidden role="dialog" aria-modal="true" aria-labelledby="crop-title">
+    <div class="crop-dialog">
+        <h3 id="crop-title">Atur Foto Profil</h3>
+        <p class="crop-sub">Geser foto dan atur zoom sampai posisinya pas di dalam lingkaran.</p>
+        <div class="crop-stage" id="crop-stage">
+            <img id="crop-img" alt="" draggable="false">
+            <div class="crop-mask"></div>
+        </div>
+        <div class="crop-zoom">
+            <button type="button" id="crop-zout" aria-label="Perkecil">&minus;</button>
+            <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
+            <button type="button" id="crop-zin" aria-label="Perbesar">+</button>
+        </div>
+        <p class="crop-tip">Tips: scroll mouse juga bisa untuk zoom.</p>
+        <div class="crop-btns">
+            <button type="button" class="btn btn-outline btn-sm" id="crop-reset">Reset</button>
+            <button type="button" class="btn btn-outline btn-sm" id="crop-cancel">Batal</button>
+            <button type="button" class="btn btn-primary btn-sm" id="crop-apply">Lanjut</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pop up konfirmasi simpan foto -->
+<div class="crop-modal" id="confirm-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cf-title">
+    <div class="crop-dialog cf-dialog">
+        <div class="cf-preview">
+            <img id="cf-img" alt="Pratinjau foto profil baru">
+            <span class="cf-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+        </div>
+        <h3 id="cf-title">Pakai foto ini?</h3>
+        <p class="crop-sub">Beginilah tampilan fotomu di TIF Hub. Foto profil lamamu akan diganti.</p>
+        <div class="cf-btns">
+            <button type="button" class="btn btn-primary" id="cf-save">Ya, simpan foto</button>
+            <div class="row">
+                <button type="button" class="btn btn-outline btn-sm" id="cf-again">Atur ulang</button>
+                <button type="button" class="btn btn-outline btn-sm" id="cf-cancel">Batal</button>
             </div>
         </div>
     </div>
 </div>
 
-
-<div class="section-title"><span>🎫 Tiket Proyek Saya</span></div>
-<?php if (empty($claims)): ?>
-<div class="empty-state mb-3">
-    <div class="icon">🎫</div>
-    <p>Kamu belum memiliki tiket proyek pada semester ini.</p>
-    <p class="text-sm text-muted">Klaim tiket melalui tombol <strong>KLAIM TIKET SEKARANG</strong> di Beranda saat periode war aktif.</p>
-    <a href="/#klaim-tiket" class="btn btn-outline btn-sm mt-1">Ke Beranda</a>
-</div>
-<?php else: ?>
-<div class="card mb-3" style="overflow-x:auto;">
-    <table style="width:100%;border-collapse:collapse;font-size:.92rem;">
-        <thead>
-            <tr style="text-align:left;border-bottom:1px solid #e2e8f0;">
-                <th style="padding:.6rem;">ID Tiket</th>
-                <th style="padding:.6rem;">Proyek</th>
-                <th style="padding:.6rem;">Semester</th>
-                <th style="padding:.6rem;">Tanggal Klaim</th>
-                <th style="padding:.6rem;">Status</th>
-                <th style="padding:.6rem;"></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($claims as $c): ?>
-            <tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:.6rem;"><code><?= e($c['ticket_code']) ?></code></td>
-                <td style="padding:.6rem;"><?= e($c['project_title']) ?></td>
-                <td style="padding:.6rem;"><?= e($c['semester_name'] ?? '-') ?><?= !empty($c['academic_year']) ? ' · ' . e($c['academic_year']) : '' ?></td>
-                <td style="padding:.6rem;"><?= e(format_datetime($c['claimed_at'])) ?></td>
-                <td style="padding:.6rem;">
-                    <?php if (($c['status'] ?? '') === 'claimed'): ?>
-                        <span class="badge badge-success">Terklaim</span>
-                    <?php else: ?>
-                        <span class="badge badge-secondary"><?= e($c['status'] ?? '-') ?></span>
-                    <?php endif; ?>
-                </td>
-                <td style="padding:.6rem;"><a href="/claims/<?= (int)$c['id'] ?>" class="btn btn-outline btn-sm">Lihat detail</a></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+<?php if ($avatarUrl): ?>
+<!-- Pop up konfirmasi hapus foto -->
+<div class="crop-modal" id="delete-modal" hidden role="alertdialog" aria-modal="true" aria-labelledby="dm-title">
+    <div class="crop-dialog cf-dialog">
+        <div class="cf-preview">
+            <img src="<?= e($avatarUrl) ?>" alt="Foto profil saat ini">
+            <span class="cf-badge is-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg></span>
+        </div>
+        <h3 id="dm-title">Hapus foto profil?</h3>
+        <p class="crop-sub">Fotomu akan dihapus dan diganti dengan inisial <strong><?= e(initials($user['name'])) ?></strong>. Kamu bisa mengunggah foto baru kapan saja.</p>
+        <div class="cf-btns">
+            <button type="button" class="btn cf-danger" id="dm-confirm">Ya, hapus foto</button>
+            <button type="button" class="btn btn-outline btn-sm" id="dm-cancel">Batal</button>
+        </div>
+    </div>
 </div>
 <?php endif; ?>
 
-<div class="section-title"><span>Proyek Saya</span></div>
-<?php if (empty($myProjects)): ?>
-<div class="empty-state">
-    <div class="icon"><?= icon('folder') ?></div>
-    <p>Belum ada proyek yang terkait dengan akun Anda.</p>
-</div>
-<?php else: ?>
-<div class="project-grid">
-    <?php foreach ($myProjects as $p) { $opts = ['role' => $p['role_in_project']]; include __DIR__ . '/../partials/project_card.php'; } ?>
-</div>
-<?php endif; ?>
+<script>
+(function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var form = $('avatar-form'), input = $('avatar-input'), errBox = $('avatar-error');
+    var modal = $('crop-modal'), stage = $('crop-stage'), cimg = $('crop-img'), zoomEl = $('crop-zoom');
+    var confirmModal = $('confirm-modal'), cfImg = $('cf-img'), cfSave = $('cf-save');
+    var delModal = $('delete-modal');
+    if (!form || !input || !modal || !confirmModal) return;
+
+    var maxBytes    = <?= (int) $maxBytes ?>;
+    var maxOriginal = 10 * 1024 * 1024;          // foto asli maks. 10 MB (hasil crop jauh lebih kecil)
+    var allowed     = ['image/jpeg', 'image/png', 'image/webp'];
+    var OUT         = 512;                        // hasil akhir 512x512 px
+    var st          = { w: 0, h: 0, S: 300, zoom: 1, cx: 0, cy: 0 };
+    var sourceUrl = null, previewUrl = null, croppedFile = null;
+
+    function showError(m) { errBox.textContent = m; errBox.hidden = false; }
+    function hideError() { errBox.hidden = true; }
+    function revoke(u) { if (u) URL.revokeObjectURL(u); }
+
+    function openModal(m)  { m.hidden = false; document.body.style.overflow = 'hidden'; }
+    function closeModal(m) { m.hidden = true; if (modal.hidden && confirmModal.hidden && (!delModal || delModal.hidden)) document.body.style.overflow = ''; }
+
+    function syncInput(file) {
+        try { var dt = new DataTransfer(); if (file) dt.items.add(file); input.files = dt.files; }
+        catch (e) { if (!file) input.value = ''; }
+    }
+    function resetAll() {
+        syncInput(null); input.value = '';
+        croppedFile = null;
+        revoke(sourceUrl); sourceUrl = null;
+        revoke(previewUrl); previewUrl = null;
+        hideError();
+    }
+
+    /* ---------- geometri crop ---------- */
+    function base() { return st.S / Math.min(st.w, st.h); }
+    function clamp() {
+        var sc = base() * st.zoom, dw = st.w * sc, dh = st.h * sc;
+        st.cx = Math.min(dw / 2, Math.max(st.S - dw / 2, st.cx));
+        st.cy = Math.min(dh / 2, Math.max(st.S - dh / 2, st.cy));
+    }
+    function render() {
+        var sc = base() * st.zoom, dw = st.w * sc, dh = st.h * sc;
+        cimg.style.width = dw + 'px';  cimg.style.height = dh + 'px';
+        cimg.style.left = (st.cx - dw / 2) + 'px';  cimg.style.top = (st.cy - dh / 2) + 'px';
+        zoomEl.value = st.zoom;
+    }
+    function setZoom(z) {
+        z = Math.min(4, Math.max(1, z));
+        var r = (base() * z) / (base() * st.zoom), h = st.S / 2;
+        st.zoom = z;
+        st.cx = h + (st.cx - h) * r;  st.cy = h + (st.cy - h) * r;
+        clamp(); render();
+    }
+    function fit() {
+        st.S = stage.clientWidth;
+        st.zoom = 1; st.cx = st.S / 2; st.cy = st.S / 2;
+        clamp(); render();
+    }
+    function openCropper() {
+        openModal(modal);
+        cimg.onload = function () { st.w = cimg.naturalWidth; st.h = cimg.naturalHeight; fit(); };
+        cimg.src = sourceUrl;
+        if (cimg.complete && cimg.naturalWidth) { st.w = cimg.naturalWidth; st.h = cimg.naturalHeight; fit(); }
+    }
+    function cancelAll() {
+        closeModal(modal); closeModal(confirmModal);
+        resetAll();
+    }
+
+    /* ---------- interaksi: geser, scroll, slider ---------- */
+    var drag = null;
+    stage.addEventListener('pointerdown', function (e) {
+        drag = { x: e.clientX, y: e.clientY, cx: st.cx, cy: st.cy };
+        stage.setPointerCapture(e.pointerId);
+        stage.classList.add('is-drag');
+    });
+    stage.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        st.cx = drag.cx + (e.clientX - drag.x);
+        st.cy = drag.cy + (e.clientY - drag.y);
+        clamp(); render();
+    });
+    function endDrag() { drag = null; stage.classList.remove('is-drag'); }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        setZoom(st.zoom + (e.deltaY < 0 ? 0.1 : -0.1));
+    }, { passive: false });
+    zoomEl.addEventListener('input', function () { setZoom(parseFloat(zoomEl.value)); });
+    $('crop-zin').addEventListener('click', function () { setZoom(st.zoom + 0.2); });
+    $('crop-zout').addEventListener('click', function () { setZoom(st.zoom - 0.2); });
+    $('crop-reset').addEventListener('click', fit);
+    $('crop-cancel').addEventListener('click', cancelAll);
+    window.addEventListener('resize', function () { if (!modal.hidden && st.w) { fit(); } });
+
+    /* ---------- lanjut: potong persegi 512x512 lalu tampilkan pop up konfirmasi ---------- */
+    function toBlob(canvas, q) {
+        return new Promise(function (res) { canvas.toBlob(res, 'image/jpeg', q); });
+    }
+    $('crop-apply').addEventListener('click', async function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = OUT; canvas.height = OUT;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, OUT, OUT);   // PNG transparan -> latar putih
+        ctx.imageSmoothingQuality = 'high';
+        var k = OUT / st.S, sc = base() * st.zoom, dw = st.w * sc, dh = st.h * sc;
+        ctx.drawImage(cimg, (st.cx - dw / 2) * k, (st.cy - dh / 2) * k, dw * k, dh * k);
+
+        var blob = null, q = 0.9;
+        while (q >= 0.5) {
+            blob = await toBlob(canvas, q);
+            if (blob && blob.size <= maxBytes) break;
+            q -= 0.1;
+        }
+        if (!blob || blob.size > maxBytes) { cancelAll(); showError('Foto gagal diproses. Coba foto lain.'); return; }
+
+        croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        syncInput(croppedFile);
+        revoke(previewUrl);
+        previewUrl = URL.createObjectURL(blob);
+        cfImg.src = previewUrl;
+
+        closeModal(modal);
+        openModal(confirmModal);
+    });
+
+    /* ---------- pop up konfirmasi simpan ---------- */
+    cfSave.addEventListener('click', function () {
+        cfSave.disabled = true;
+        cfSave.textContent = 'Menyimpan…';
+        form.submit();
+    });
+    $('cf-again').addEventListener('click', function () {
+        closeModal(confirmModal);
+        if (sourceUrl) openCropper();
+    });
+    $('cf-cancel').addEventListener('click', cancelAll);
+
+    /* ---------- pilih file ---------- */
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        hideError();
+        if (allowed.indexOf(file.type) === -1) { resetAll(); showError('Format foto harus JPG, PNG, atau WEBP.'); return; }
+        if (file.size > maxOriginal) { resetAll(); showError('Foto asli terlalu besar (maksimal 10 MB).'); return; }
+        revoke(sourceUrl);
+        sourceUrl = URL.createObjectURL(file);
+        openCropper();
+    });
+
+    /* ---------- pop up hapus foto ---------- */
+    if (delModal) {
+        $('avatar-remove-btn').addEventListener('click', function () { openModal(delModal); });
+        $('dm-cancel').addEventListener('click', function () { closeModal(delModal); });
+        $('dm-confirm').addEventListener('click', function () {
+            this.disabled = true; this.textContent = 'Menghapus…';
+            $('avatar-remove-form').submit();
+        });
+    }
+
+    /* ---------- tutup dengan Esc / klik latar ---------- */
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!confirmModal.hidden) cancelAll();
+        else if (!modal.hidden) cancelAll();
+        else if (delModal && !delModal.hidden) closeModal(delModal);
+    });
+    [modal, confirmModal, delModal].forEach(function (m) {
+        if (!m) return;
+        m.addEventListener('mousedown', function (e) {
+            if (e.target !== m) return;
+            if (m === delModal) closeModal(delModal); else cancelAll();
+        });
+    });
+
+    // Label kamera bisa dibuka dengan keyboard
+    var cam = document.querySelector('.pf-cam');
+    cam.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+    });
+})();
+</script>

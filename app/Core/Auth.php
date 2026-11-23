@@ -26,6 +26,18 @@ class Auth
             return null;
         }
 
+        // Foto profil dimuat sekali dari database lalu disimpan di session
+        if (!Session::has('user_avatar')) {
+            $avatar = '';
+            try {
+                $row = (new \App\Models\User())->find((int) Session::get('user_id'));
+                $avatar = (string) ($row['avatar'] ?? '');
+            } catch (\Throwable $e) {
+                // abaikan: tampilkan inisial saja
+            }
+            Session::set('user_avatar', $avatar);
+        }
+
         return [
             'id'       => Session::get('user_id'),
             'nim'      => Session::get('user_nim'),
@@ -34,6 +46,7 @@ class Auth
             'role'     => Session::get('user_role'),
             'class'    => Session::get('user_class'),
             'semester' => Session::get('user_semester'),
+            'avatar'   => Session::get('user_avatar') ?: null,
         ];
     }
 

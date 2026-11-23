@@ -185,7 +185,7 @@
 
     // Cegah submit selagi foto masih diproses (agar tidak ada foto yang tertinggal)
     if (form) form.addEventListener('submit', function (e) {
-        if (busy) { e.preventDefault(); alert('Foto masih diproses, tunggu sebentar lalu simpan lagi.'); }
+        if (busy) { e.preventDefault(); if (window.tifAlert) { tifAlert({ title: 'Foto masih diproses', text: 'Tunggu sebentar sampai foto selesai diproses, lalu simpan lagi.', variant: 'warning' }); } else { alert('Foto masih diproses, tunggu sebentar lalu simpan lagi.'); } }
     });
 
     /* Foto yang sudah ada: tandai hapus / pilih cover / atur urutan */

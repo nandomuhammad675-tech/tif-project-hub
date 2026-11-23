@@ -5,6 +5,9 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Session;
+use App\Helpers\ImageUploader;
+use App\Models\User;
 use App\Models\ProjectClaim;
 use App\Models\WarSetting;
 
@@ -46,5 +49,65 @@ class ProfileController extends Controller
             'activeClaim' => $activeClaim,
             'war'         => $war,
         ]);
+    }
+
+    /**
+     * Ganti foto profil
+     */
+    public function updateAvatar(): void
+    {
+        Auth::requireStudent();
+
+        // Jika file melebihi post_max_size, PHP mengosongkan $_POST dan $_FILES
+        if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            $this->profileError('Ukuran foto melebihi batas server. Gunakan foto yang lebih kecil.');
+        }
+        if (!$this->validateCsrf()) {
+            $this->profileError('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $result = ImageUploader::saveAvatar('avatar');
+        if ($result['error'] !== null) {
+            $this->profileError($result['error']);
+        }
+
+        $userId = (int) Auth::id();
+        $userModel = new User();
+        $old = $userModel->find($userId)['avatar'] ?? null;
+
+        $userModel->update($userId, ['avatar' => $result['filename']]);
+        ImageUploader::deleteAvatar($old);
+        Session::set('user_avatar', $result['filename']);
+
+        $this->redirectWithSuccess('/profile', 'Foto profil berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus foto profil (kembali ke inisial)
+     */
+    public function removeAvatar(): void
+    {
+        Auth::requireStudent();
+
+        if (!$this->validateCsrf()) {
+            $this->profileError('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $userId = (int) Auth::id();
+        $userModel = new User();
+        $old = $userModel->find($userId)['avatar'] ?? null;
+
+        $userModel->update($userId, ['avatar' => null]);
+        ImageUploader::deleteAvatar($old);
+        Session::set('user_avatar', '');
+
+        $this->redirectWithSuccess('/profile', 'Foto profil dihapus.');
+    }
+
+    /** Pesan error lalu kembali ke halaman profil */
+    private function profileError(string $message): void
+    {
+        Session::flash('error', $message);
+        $this->redirect('/profile');
     }
 }

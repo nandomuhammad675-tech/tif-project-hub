@@ -37,6 +37,8 @@ $router->post('/wishlists/{id}/remove','WishlistController@remove', ['student'])
 
 // Student - Profile
 $router->get('/profile', 'ProfileController@index', ['student']);
+$router->post('/profile/avatar', 'ProfileController@updateAvatar', ['student']);
+$router->post('/profile/avatar/remove', 'ProfileController@removeAvatar', ['student']);
 
 // Admin
 $router->get('/admin', 'AdminController@dashboard', ['admin']);

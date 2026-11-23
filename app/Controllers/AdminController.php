@@ -393,6 +393,20 @@ class AdminController extends Controller
             'active_semester_id' => (int) $this->input('active_semester_id', 0) ?: null,
         ];
 
+        // Validasi jadwal
+        if ($starts !== null && strtotime($starts) === false || $ends !== null && strtotime($ends) === false) {
+            $this->backWithError('Format waktu tidak valid.');
+            return;
+        }
+        if ($starts !== null && $ends !== null && strtotime($ends) <= strtotime($starts)) {
+            $this->backWithError('Waktu berakhir harus setelah waktu mulai.');
+            return;
+        }
+        if ($data['is_open'] && !$data['active_semester_id']) {
+            $this->backWithError('Pilih semester aktif sebelum membuka war.');
+            return;
+        }
+
         (new WarSetting())->updateSettings($data, (int) Auth::id());
         Session::flash('success', 'Pengaturan Project War disimpan.');
         $this->redirect('/admin/war');
