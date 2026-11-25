@@ -1,4 +1,13 @@
 <?php
+/**
+ * @var array       $project
+ * @var array       $images
+ * @var array       $members
+ * @var bool        $canEdit
+ * @var bool        $isTaken
+ * @var bool        $isWishlisted
+ * @var string      $csrf
+ */
 $imageUrls = array_map(fn($im) => \App\Helpers\ImageUploader::url($im['filename']), $images ?? []);
 ?>
 <style>
