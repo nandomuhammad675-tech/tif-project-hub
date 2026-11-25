@@ -69,8 +69,8 @@ foreach ($images as $im) { if ((int) $im['is_cover'] === 1) { $hasCover = true; 
                 </div>
                 <h4>Seret &amp; lepas foto di sini</h4>
                 <p>atau <b>klik untuk memilih</b> · JPG, PNG, WEBP, GIF · maks <?= e($fmtMb($limits['file'])) ?>/foto · hingga <?= (int) $limits['count'] ?> foto</p>
+                <div class="img-grid" id="newImages"></div>
             </div>
-            <div class="img-grid" id="newImages"></div>
             <div class="upload-note"><span id="uploadNote" role="status" aria-live="polite"></span><span>Foto otomatis dikecilkan agar upload cepat<?= $limits['post'] > 0 ? ' · total maks ' . e($fmtMb($limits['post'])) . ' per simpan' : '' ?></span></div>
             <?php if (empty($images)): ?>
             <span class="form-hint">Foto pertama yang diunggah otomatis menjadi cover. Anda bisa mengubahnya nanti.</span>

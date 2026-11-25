@@ -33,7 +33,7 @@ $ico = [
                 <span class="logo-emblems" aria-hidden="true"></span>
                 <span class="logo-text" aria-hidden="true"><b>JTI</b>Jurusan<br>Teknologi<br>Informasi</span>
             </div>
-            <div class="brand-text">TIF Hub <span>Admin Panel</span></div>
+            <div class="brand-text">TIF Hub <span>Admin</span></div>
         </a>
 
         <div class="side-label">Menu Utama</div>
@@ -44,11 +44,6 @@ $ico = [
             <a href="/admin/war" class="<?= $is('/admin/war') ? 'active' : '' ?>"><?= $ico['projects'] ?> Project War</a>
             <a href="/admin/claims" class="<?= $is('/admin/claims') ? 'active' : '' ?>"><?= $ico['ticket'] ?> Tiket Klaim</a>
             <a href="/admin/violations" class="<?= $is('/admin/violations') ? 'active' : '' ?>"><?= $ico['users'] ?> Pelanggaran</a>
-        </nav>
-
-        <div class="side-label">Pintasan</div>
-        <nav class="side-nav">
-            <a href="/admin/projects/create"><?= $ico['projects'] ?> + Proyek Baru</a>
         </nav>
 
         <div class="side-user">

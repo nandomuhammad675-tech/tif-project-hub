@@ -45,10 +45,7 @@ $router->get('/admin', 'AdminController@dashboard', ['admin']);
 
 // Admin - Students
 $router->get('/admin/students',              'AdminController@students',       ['admin']);
-$router->get('/admin/students/create',       'AdminController@studentCreate',  ['admin']);
-$router->post('/admin/students',             'AdminController@studentStore',   ['admin']);
-$router->get('/admin/students/{id}/edit',    'AdminController@studentEdit',    ['admin']);
-$router->post('/admin/students/{id}',        'AdminController@studentUpdate',  ['admin']);
+$router->get('/admin/students/{id}',          'AdminController@studentShow',    ['admin']);
 $router->post('/admin/students/{id}/delete', 'AdminController@studentDelete',  ['admin']);
 
 // Admin - Projects

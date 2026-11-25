@@ -47,52 +47,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function studentCreate(): void
-    {
-        Auth::requireAdmin();
-        $this->view('admin/students/form', [
-            'title'   => 'Tambah Mahasiswa - TIF Hub',
-            'user'    => Auth::user(),
-            'student' => null,
-            'csrf'    => Session::getCsrfToken(),
-        ]);
-    }
-
-    public function studentStore(): void
-    {
-        Auth::requireAdmin();
-        if (!$this->validateCsrf()) {
-            $this->backWithError('Token tidak valid.');
-        }
-
-        $userModel = new User();
-        $data = [
-            'nim'      => trim($this->input('nim', '')),
-            'name'     => trim($this->input('name', '')),
-            'email'    => trim($this->input('email', '')),
-            'password' => $this->input('password', ''),
-            'class'    => trim($this->input('class', '')),
-            'semester' => (int) $this->input('semester', 1),
-            'role'     => 'mahasiswa',
-            'status'   => $this->input('status', 'active'),
-        ];
-
-        if ($data['name'] === '' || $data['email'] === '' || $data['password'] === '') {
-            Session::flash('error', 'Nama, email, dan password wajib diisi.');
-            $this->redirect('/admin/students/create');
-        }
-
-        if ($userModel->findByEmail($data['email'])) {
-            Session::flash('error', 'Email sudah terdaftar.');
-            $this->redirect('/admin/students/create');
-        }
-
-        $userModel->createUser($data);
-        Session::flash('success', 'Mahasiswa berhasil ditambahkan.');
-        $this->redirect('/admin/students');
-    }
-
-    public function studentEdit(string $id): void
+    public function studentShow(string $id): void
     {
         Auth::requireAdmin();
         $userModel = new User();
@@ -101,47 +56,14 @@ class AdminController extends Controller
         if (!$student || $student['role'] !== 'mahasiswa') {
             Session::flash('error', 'Mahasiswa tidak ditemukan.');
             $this->redirect('/admin/students');
+            return;
         }
 
-        $this->view('admin/students/form', [
-            'title'   => 'Edit Mahasiswa - TIF Hub',
+        $this->view('admin/students/show', [
+            'title'   => 'Detail Mahasiswa - TIF Hub',
             'user'    => Auth::user(),
             'student' => $student,
-            'csrf'    => Session::getCsrfToken(),
         ]);
-    }
-
-    public function studentUpdate(string $id): void
-    {
-        Auth::requireAdmin();
-        if (!$this->validateCsrf()) {
-            $this->backWithError('Token tidak valid.');
-        }
-
-        $userModel = new User();
-        $student = $userModel->find((int) $id);
-        if (!$student || $student['role'] !== 'mahasiswa') {
-            $this->redirect('/admin/students');
-        }
-
-        $data = [
-            'nim'      => trim($this->input('nim', '')),
-            'name'     => trim($this->input('name', '')),
-            'email'    => trim($this->input('email', '')),
-            'class'    => trim($this->input('class', '')),
-            'semester' => (int) $this->input('semester', 1),
-            'status'   => $this->input('status', 'active'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $password = $this->input('password', '');
-        if ($password !== '') {
-            $data['password'] = $userModel->hashPassword($password);
-        }
-
-        $userModel->update((int) $id, $data);
-        Session::flash('success', 'Data mahasiswa diperbarui.');
-        $this->redirect('/admin/students');
     }
 
     public function studentDelete(string $id): void
@@ -155,7 +77,7 @@ class AdminController extends Controller
         $student = $userModel->find((int) $id);
         if ($student && $student['role'] === 'mahasiswa') {
             $userModel->update((int) $id, ['status' => 'inactive', 'updated_at' => date('Y-m-d H:i:s')]);
-            Session::flash('success', 'Mahasiswa dinonaktifkan.');
+            Session::flash('success', 'Akun mahasiswa dinonaktifkan. Riwayat dan tiket tetap tersimpan.');
         }
         $this->redirect('/admin/students');
     }
