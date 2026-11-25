@@ -1,7 +1,6 @@
 <?php
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $is = fn(string $p, bool $exact = false) => $exact ? $path === $p : str_starts_with($path, $p);
-try { $openTickets = (new \App\Models\Ticket())->countByStatus('open'); } catch (\Throwable $e) { $openTickets = 0; }
 
 $ico = [
     'dash'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
@@ -30,7 +29,10 @@ $ico = [
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar">
         <a href="/admin" class="brand">
-            <img src="<?= asset('images/logo-jti.png') ?>" alt="JTI Logo">
+            <div class="logo-pill" role="img" aria-label="Logo Jurusan Teknologi Informasi">
+                <span class="logo-emblems" aria-hidden="true"></span>
+                <span class="logo-text" aria-hidden="true"><b>JTI</b>Jurusan<br>Teknologi<br>Informasi</span>
+            </div>
             <div class="brand-text">TIF Hub <span>Admin Panel</span></div>
         </a>
 
@@ -64,17 +66,14 @@ $ico = [
         </div>
 
         <main class="admin-content">
-            <?php if ($msg = \App\Core\Session::flash('success')): ?>
-                <div class="alert alert-success"><?= icon('check-circle') ?> <span><?= e($msg) ?></span></div>
-            <?php endif; ?>
-            <?php if ($msg = \App\Core\Session::flash('error')): ?>
-                <div class="alert alert-error"><?= icon('alert') ?> <span><?= e($msg) ?></span></div>
-            <?php endif; ?>
+            <?php include __DIR__ . '/../partials/flash_toasts.php'; ?>
             <?= $content ?? '' ?>
         </main>
         <footer class="admin-footer">TIF Hub Admin · Jurusan Teknologi Informasi · &copy; <?= date('Y') ?></footer>
     </div>
 </div>
+<?php include __DIR__ . '/../partials/logout_modal.php'; ?>
+<?php include __DIR__ . '/../partials/confirm_modal.php'; ?>
 <script src="<?= asset('js/app.js') ?>"></script>
 <script src="<?= asset('js/animations.js') ?>"></script>
 </body>

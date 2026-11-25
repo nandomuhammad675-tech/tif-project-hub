@@ -73,7 +73,7 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
-        Session::flash('success', 'Selamat datang, ' . htmlspecialchars($user['name']) . '!');
+        Session::flash('welcome', $user['name']);
         Auth::redirectByRole();
     }
 

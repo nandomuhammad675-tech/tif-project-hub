@@ -52,7 +52,7 @@
             <td>
                 <div class="row-actions">
                     <a href="/admin/projects/<?= (int) $p['id'] ?>/edit" class="btn btn-sm btn-outline"><?= icon('pencil') ?> Edit</a>
-                    <form method="POST" action="/admin/projects/<?= (int) $p['id'] ?>/delete" onsubmit="return confirm('Hapus proyek ini beserta semua fotonya?')">
+                    <form method="POST" action="/admin/projects/<?= (int) $p['id'] ?>/delete" data-confirm="Proyek beserta semua fotonya akan dihapus permanen dan tidak bisa dikembalikan." data-confirm-title="Hapus proyek ini?" data-confirm-ok="Ya, hapus" data-confirm-variant="danger" data-confirm-detail="<?= e($p['title']) ?>">
                         <input type="hidden" name="_token" value="<?= e(\App\Core\Session::getCsrfToken()) ?>">
                         <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
                     </form>

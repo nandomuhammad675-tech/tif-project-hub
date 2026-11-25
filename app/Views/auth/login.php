@@ -70,8 +70,8 @@ $showDemo = getenv('APP_ENV') === 'local';
         .ico { width: 1.15em; height: 1.15em; flex-shrink: 0; }
         .demo-btn b { display: flex !important; align-items: center; gap: .35rem; }
         .hint .ico { width: 1em; height: 1em; vertical-align: -.15em; margin-right: .2rem; }
-        .brand h2 { font-size: 2.5rem; line-height: 1.12; font-weight: 800; letter-spacing: -1px; margin: 1.1rem 0 .9rem; }
-        .brand > p { color: rgba(255,255,255,.85); line-height: 1.7; max-width: 30rem; }
+        .brand h2 { font-size: 2.5rem; line-height: 1.12; font-weight: 800; letter-spacing: -1px; margin: 1.1rem 0 .9rem; text-wrap: balance; }
+        .brand > p { color: rgba(255,255,255,.85); line-height: 1.7; max-width: 31rem; text-wrap: pretty; }
         .features { list-style: none; margin-top: 1.8rem; display: grid; gap: .9rem; }
         .features li { display: flex; align-items: flex-start; gap: .8rem; }
         .features .ico {
@@ -80,8 +80,8 @@ $showDemo = getenv('APP_ENV') === 'local';
             display: flex; align-items: center; justify-content: center;
         }
         .features svg { width: 20px; height: 20px; }
-        .features b { display: block; font-size: .95rem; }
-        .features span { font-size: .84rem; color: rgba(255,255,255,.8); }
+        .features b { display: block; font-size: .95rem; margin-bottom: .1rem; }
+        .features span { display: block; font-size: .84rem; line-height: 1.5; max-width: 28rem; color: rgba(255,255,255,.8); text-wrap: pretty; }
 
         /* ---------- Kartu login ---------- */
         .card {
@@ -115,14 +115,43 @@ $showDemo = getenv('APP_ENV') === 'local';
         .logo h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo p { color: var(--muted); font-size: .88rem; margin-top: .35rem; }
 
+        /* ---------- Notifikasi: hilang sendiri setelah beberapa detik ---------- */
         .alert {
+            position: relative; overflow: hidden;
             display: flex; align-items: flex-start; gap: .6rem;
-            padding: .75rem .95rem; border-radius: 12px; margin-bottom: 1.1rem;
+            padding: .75rem .5rem .85rem .95rem; border-radius: 12px; margin-bottom: 1.1rem;
             font-size: .86rem; line-height: 1.45;
+            max-height: 140px;
+            animation: alertIn .45s cubic-bezier(.2, .7, .2, 1) both;
+            transition: opacity .35s ease, transform .35s ease, max-height .4s ease,
+                        padding .4s ease, margin .4s ease, border-width .4s ease;
         }
-        .alert svg { flex: none; width: 18px; height: 18px; margin-top: 1px; }
+        .alert > svg { flex: none; width: 18px; height: 18px; margin-top: 1px; }
+        .alert > span { flex: 1; }
         .alert-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
         .alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .alert-close {
+            flex: none; width: 28px; height: 28px; border: none; background: transparent;
+            border-radius: 8px; color: inherit; opacity: .6; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity .2s, background .2s;
+        }
+        .alert-close:hover { opacity: 1; background: rgba(0,0,0,.06); }
+        .alert-close:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; opacity: 1; }
+        .alert-close svg { width: 16px; height: 16px; }
+        /* Garis waktu mundur di bagian bawah notifikasi */
+        .alert-bar {
+            position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+            background: currentColor; opacity: .35; transform-origin: left;
+            animation: alertBar linear forwards;
+        }
+        .alert.paused .alert-bar { animation-play-state: paused; }
+        .alert.hide {
+            opacity: 0; transform: translateY(-8px); max-height: 0;
+            padding-top: 0; padding-bottom: 0; margin-bottom: 0; border-width: 0;
+        }
+        @keyframes alertIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+        @keyframes alertBar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
         .form-group { margin-bottom: 1.1rem; }
         .form-group label { display: block; font-size: .86rem; font-weight: 700; margin-bottom: .4rem; }
@@ -197,9 +226,25 @@ $showDemo = getenv('APP_ENV') === 'local';
         .page-foot { margin-top: 1rem; text-align: center; font-size: .75rem; color: rgba(255,255,255,.8); }
 
         @media (min-width: 900px) {
-            .shell { max-width: 1020px; grid-template-columns: 1.1fr 440px; }
-            .brand { display: block; }
+            .shell { max-width: 1180px; grid-template-columns: minmax(0, 1fr) 440px; column-gap: 4.5rem; row-gap: 1.25rem; }
+            .brand { display: block; max-width: 36rem; }
             .page-foot { grid-column: 1 / -1; margin-top: 0; }
+        }
+        /* Laptop / layar sedang: rapatkan sedikit supaya panel kiri tidak sempit */
+        @media (min-width: 900px) and (max-width: 1100px) {
+            .shell { column-gap: 2.5rem; }
+            .brand h2 { font-size: 2.05rem; }
+        }
+        /* Layar pendek: padatkan jarak vertikal supaya kartu dan footer muat tanpa terpotong */
+        @media (min-width: 900px) and (max-height: 860px) {
+            body { padding: 1rem 1.5rem; }
+            .shell { row-gap: .9rem; }
+            .card { padding: 1.6rem 2rem 1.4rem; }
+            .logo { margin-bottom: 1.1rem; }
+            .logo h1 { margin-top: .85rem; }
+            .form-group { margin-bottom: .9rem; }
+            .demo { margin-top: 1rem; padding-top: .9rem; }
+            .features { margin-top: 1.4rem; gap: .8rem; }
         }
         @media (max-width: 420px) {
             body { padding: 1rem; }
@@ -219,26 +264,26 @@ $showDemo = getenv('APP_ENV') === 'local';
         <!-- Panel brand: tampil di layar lebar -->
         <section class="brand" aria-hidden="false">
             <span class="tag"><?= icon('graduation') ?> Jurusan Teknologi Informasi</span>
-            <h2>Wadah karya mahasiswa Teknik Informatika.</h2>
-            <p>Temukan proyek, bentuk kelompok, dan pantau semuanya di satu tempat.</p>
+            <h2>Temukan proyek, klaim yang kamu incar.</h2>
+            <p>TIF Hub memudahkan kamu menjelajahi proyek mahasiswa TIF Politeknik Negeri Jember dari PSDKU Nganjuk dan mengklaim proyek untuk semester kamu.</p>
             <ul class="features">
                 <li>
                     <div class="ico">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
                     </div>
-                    <div><b>Katalog proyek</b><span>Cari dan filter proyek berdasarkan kategori, semester, dan teknologi.</span></div>
+                    <div><b>Jelajahi proyek</b><span>Cari lewat kata kunci, lalu saring berdasarkan kategori, semester, atau teknologi. Simpan favoritmu ke wishlist.</span></div>
                 </li>
                 <li>
                     <div class="ico">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <div><b>Ambil proyek kelompok</b><span>Pilih proyek yang tersedia dan lihat anggota timnya.</span></div>
+                    <div><b>Klaim proyek semestermu</b><span>Saat jadwal klaim dibuka, pilih satu proyek yang masih tersedia dan dapatkan tiket digitalnya.</span></div>
                 </li>
                 <li>
                     <div class="ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     </div>
-                    <div><b>Sistem tiket</b><span>Ajukan kendala atau pertanyaan dan pantau balasan admin.</span></div>
+                    <div><b>Lihat karya secara lengkap</b><span>Buka detail proyek beserta foto, teknologi, anggota kelompok, serta link GitHub dan demo-nya.</span></div>
                 </li>
             </ul>
         </section>
@@ -255,15 +300,19 @@ $showDemo = getenv('APP_ENV') === 'local';
             </div>
 
             <?php if ($error): ?>
-                <div class="alert alert-error" role="alert">
+                <div class="alert alert-error" role="alert" data-autohide="7000">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <span><?= e($error) ?></span>
+                    <button type="button" class="alert-close" aria-label="Tutup pemberitahuan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <i class="alert-bar" style="animation-duration: 7000ms" aria-hidden="true"></i>
                 </div>
             <?php endif; ?>
             <?php if ($success): ?>
-                <div class="alert alert-success" role="status">
+                <div class="alert alert-success" role="status" data-autohide="4500">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     <span><?= e($success) ?></span>
+                    <button type="button" class="alert-close" aria-label="Tutup pemberitahuan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <i class="alert-bar" style="animation-duration: 4500ms" aria-hidden="true"></i>
                 </div>
             <?php endif; ?>
 
@@ -361,6 +410,23 @@ $showDemo = getenv('APP_ENV') === 'local';
                 pw.value = b.dataset.pass;
                 btn.focus();
             });
+        });
+
+        // Notifikasi hilang otomatis; berhenti sementara saat disorot kursor; bisa ditutup manual
+        document.querySelectorAll('.alert[data-autohide]').forEach(function (el) {
+            var remaining = parseInt(el.dataset.autohide, 10) || 5000;
+            var startedAt = 0, timer = null;
+            function hide() {
+                clearTimeout(timer);
+                el.classList.add('hide');
+                setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+            }
+            function start() { el.classList.remove('paused'); startedAt = Date.now(); timer = setTimeout(hide, remaining); }
+            function pause() { el.classList.add('paused'); clearTimeout(timer); remaining -= Date.now() - startedAt; if (remaining < 600) remaining = 600; }
+            el.addEventListener('mouseenter', pause);
+            el.addEventListener('mouseleave', start);
+            el.querySelector('.alert-close').addEventListener('click', hide);
+            start();
         });
 
         // Cegah klik ganda + tampilkan loading

@@ -34,17 +34,24 @@ Konsep: **Marketplace Proyek + Sistem Tiket** (bukan CRUD kampus biasa).
 
 ### 1. Import database
 
+**Cara termudah (XAMPP / Laragon): lewat phpMyAdmin atau HeidiSQL**
+
+1. Buka phpMyAdmin (`http://localhost/phpmyadmin`) -> tab **Import**.
+2. Import `database/migrations.sql` (sudah termasuk tabel `wishlists`).
+3. Import `database/migrations_war.sql` (tabel Project War).
+
+**Lewat terminal** (gunakan **Command Prompt / cmd**, bukan PowerShell karena operator `<` tidak didukung di PowerShell):
+
 ```bash
 mysql -u root -p < database/migrations.sql
+mysql -u root -p tif_hub < database/migrations_war.sql
 ```
 
-Atau lewat HeidiSQL / phpMyAdmin di Laragon.
-
 > **Sudah punya database `tif_hub` dari versi sebelumnya?** Jangan import `migrations.sql` (akan menghapus data).
-> Cukup jalankan: `mysql -u root -p < database/add_project_images.sql` untuk menambah tabel foto.
-
-> **Project War / Klaim Tiket:** jalankan juga:
-> `mysql -u root -p tif_hub < database/migrations_war.sql`
+> Jalankan hanya file tambahan yang dibutuhkan:
+> - `database/add_project_images.sql` -> tabel foto proyek
+> - `database/add_wishlists.sql` -> tabel wishlist (fitur Wishlist mahasiswa)
+> - `database/migrations_war.sql` -> tabel Project War / Klaim Tiket
 
 ### 2. Konfigurasi `.env`
 
@@ -86,7 +93,7 @@ Buka: **http://localhost:8001**
 
 ### Jika muncul halaman "Ups, terjadi kesalahan"
 
-Set `APP_DEBUG=true` di `.env` untuk melihat detail error. Penyebab paling umum: tabel `project_images` belum ada (jalankan `database/add_project_images.sql`) atau MySQL belum menyala.
+Set `APP_DEBUG=true` di `.env` untuk melihat detail error. Penyebab paling umum: ada tabel yang belum dibuat, misalnya `project_images` (jalankan `database/add_project_images.sql`), `wishlists` (jalankan `database/add_wishlists.sql`) atau tabel Project War (jalankan `database/migrations_war.sql`) atau MySQL belum menyala.
 
 ## Akun Demo
 

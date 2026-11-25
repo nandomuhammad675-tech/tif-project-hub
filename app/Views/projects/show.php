@@ -63,7 +63,7 @@
             <?php elseif ($isTaken): ?>
                 <span class="badge badge-warning" style="align-self:center;">Sudah diklaim / dikerjakan</span>
             <?php else: ?>
-                <form method="POST" action="/projects/<?= (int)$project['id'] ?>/claim" onsubmit="return confirm('Ambil proyek ini? Anda hanya boleh mengerjakan satu proyek.')">
+                <form method="POST" action="/projects/<?= (int)$project['id'] ?>/claim" data-confirm="Kamu hanya boleh mengerjakan satu proyek." data-confirm-title="Ambil proyek ini?" data-confirm-ok="Ya, ambil" data-confirm-detail="<?= e($project['title']) ?>">
                     <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
                     <button type="submit" class="btn btn-primary"><?= icon('plus') ?> Ambil Proyek Ini</button>
                 </form>
@@ -78,7 +78,7 @@
             <?php endif; ?>
 
             <?php if ($isWishlisted): ?>
-                <form method="POST" action="/wishlists/<?= (int)$project['id'] ?>/remove" onsubmit="return confirm('Hapus dari wishlist?')">
+                <form method="POST" action="/wishlists/<?= (int)$project['id'] ?>/remove" data-confirm="Proyek ini akan dihapus dari daftar wishlist kamu." data-confirm-title="Hapus dari wishlist?" data-confirm-ok="Ya, hapus" data-confirm-variant="danger">
                     <input type="hidden" name="_token" value="<?= e($csrf ?? \App\Core\Session::getCsrfToken()) ?>">
                     <button type="submit" class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5;">★ Sudah di Wishlist</button>
                 </form>
