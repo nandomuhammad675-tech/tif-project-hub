@@ -62,6 +62,24 @@ class User extends Model
     /**
      * Ambil semua mahasiswa aktif
      */
+    /**
+     * Cari mahasiswa aktif yang belum punya proyek (untuk menambah anggota kelompok)
+     */
+    public function searchAvailableStudents(string $q, int $limit = 8): array
+    {
+        $like = '%' . addcslashes($q, '\\%_') . '%';
+        $stmt = $this->db->prepare(
+            "SELECT id, nim, name, class FROM users
+             WHERE role = 'mahasiswa' AND status = 'active'
+               AND id NOT IN (SELECT user_id FROM project_members)
+               AND (name LIKE ? OR nim LIKE ?)
+             ORDER BY name ASC
+             LIMIT " . (int) $limit
+        );
+        $stmt->execute([$like, $like]);
+        return $stmt->fetchAll();
+    }
+
     public function getStudents(): array
     {
         $stmt = $this->db->prepare(
@@ -77,6 +95,31 @@ class User extends Model
     /**
      * Hitung total mahasiswa
      */
+    /**
+     * Jumlah mahasiswa yang sudah tergabung di suatu proyek
+     */
+    public function countStudentsWithProject(): int
+    {
+        return (int) $this->db->query(
+            "SELECT COUNT(DISTINCT pm.user_id)
+             FROM project_members pm
+             JOIN users u ON u.id = pm.user_id
+             WHERE u.role = 'mahasiswa'"
+        )->fetchColumn();
+    }
+
+    public function getRecentStudents(int $limit = 5): array
+    {
+        return $this->db->query(
+            "SELECT u.id, u.name, u.nim, u.class, u.semester, u.avatar, u.created_at,
+                    (SELECT COUNT(*) FROM project_members pm WHERE pm.user_id = u.id) AS has_project
+             FROM users u
+             WHERE u.role = 'mahasiswa'
+             ORDER BY u.created_at DESC, u.id DESC
+             LIMIT " . (int) $limit
+        )->fetchAll();
+    }
+
     public function countStudents(): int
     {
         return $this->count("role = 'mahasiswa'");

@@ -124,6 +124,33 @@ $maxSem = max(8, $curSem);
     .ed-tips li { display: flex; gap: .5rem; align-items: center; }
     .ed-tips li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
 
+    /* ---------- Dropdown custom ---------- */
+    .ed-field.cs-on > select { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .cs-trigger { display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; text-align: left; font: inherit; color: var(--text); cursor: pointer; background: #fff; }
+    .cs-trigger .cs-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cs-chev { width: 18px; height: 18px; flex: none; color: var(--muted); transition: transform .25s cubic-bezier(.34,1.56,.64,1), color .2s ease; }
+    .cs-trigger[aria-expanded="true"] { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(3,121,146,.15); }
+    .cs-trigger[aria-expanded="true"] .cs-chev { transform: rotate(180deg); color: var(--primary); }
+    .cs-trigger:hover .cs-chev { color: var(--primary); }
+
+    .cs-menu { position: fixed; z-index: 2000; margin: 0; padding: .4rem; list-style: none; background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 60px rgba(2,37,51,.22), 0 4px 14px rgba(2,37,51,.08); max-height: 440px; overflow-y: auto; overscroll-behavior: contain;
+        opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-8px) scale(.97); transform-origin: top center; transition: opacity .18s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s linear .22s; }
+    .cs-menu.is-up { transform-origin: bottom center; transform: translateY(8px) scale(.97); }
+    .cs-menu.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition-delay: 0s; }
+    .cs-menu::-webkit-scrollbar { width: 8px; }
+    .cs-menu::-webkit-scrollbar-thumb { background: #cfe3ea; border-radius: 8px; }
+    .cs-menu-head { padding: .35rem .7rem .45rem; font-size: .68rem; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+    .cs-opt { display: flex; align-items: center; gap: .7rem; padding: .4rem .6rem; border-radius: 11px; cursor: pointer; font-size: .92rem; font-weight: 600; color: var(--text); transition: background .12s ease, color .12s ease; }
+    .cs-opt .cs-num { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; flex: none; font-size: .82rem; font-weight: 800; color: var(--primary-dark); background: #eef6f9; transition: background .15s ease, color .15s ease, transform .2s cubic-bezier(.34,1.56,.64,1); }
+    .cs-opt .cs-txt { flex: 1; min-width: 0; }
+    .cs-opt .cs-check { width: 18px; height: 18px; flex: none; color: var(--primary); opacity: 0; transform: scale(.4); transition: opacity .15s ease, transform .25s cubic-bezier(.34,1.56,.64,1); }
+    .cs-opt.is-active { background: var(--primary-light); }
+    .cs-opt.is-active .cs-num { transform: scale(1.08); background: #fff; }
+    .cs-opt[aria-selected="true"] { color: var(--primary-dark); font-weight: 800; }
+    .cs-opt[aria-selected="true"] .cs-num { background: var(--grad); color: #fff; }
+    .cs-opt[aria-selected="true"] .cs-check { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .cs-menu, .cs-chev, .cs-opt .cs-num, .cs-opt .cs-check { transition: none; } }
+
     @media (max-width: 960px) {
         .ed-layout { grid-template-columns: 1fr; }
         .ed-side { position: static; }
@@ -209,18 +236,18 @@ $maxSem = max(8, $curSem);
                     </div>
 
                     <div class="form-group full">
-                        <label for="nim">NIM <span class="lock-tag"><?= icon('lock') ?> Dikunci</span></label>
+                        <label for="nim">NIM</label>
                         <div class="ed-field">
-                            <input type="text" class="form-control" id="nim" value="<?= e($row['nim'] ?? '-') ?>" readonly tabindex="-1">
+                            <input type="text" class="form-control<?= $has('nim') ?>" id="nim" name="nim" value="<?= $val('nim') ?>" maxlength="20" placeholder="Contoh: 2021001" inputmode="numeric" autocomplete="off" required>
                             <?= icon('id-card', 'ico-l') ?>
                         </div>
-                        <span class="form-hint">NIM tidak bisa diubah sendiri. Hubungi admin jika ada kesalahan.</span>
+                        <?= $err('nim') ?>
                     </div>
 
                     <div class="form-group">
                         <label for="class">Kelas</label>
                         <div class="ed-field">
-                            <input type="text" class="form-control<?= $has('class') ?>" id="class" name="class" value="<?= $val('class') ?>" maxlength="20" placeholder="Contoh: TI-3A" style="text-transform:uppercase;">
+                            <input type="text" class="form-control<?= $has('class') ?>" id="class" name="class" value="<?= $val('class') ?>" maxlength="20" placeholder="Contoh: A" style="text-transform:uppercase;">
                             <?= icon('users-class', 'ico-l') ?>
                         </div>
                         <?= $err('class') ?>
@@ -340,6 +367,151 @@ $maxSem = max(8, $curSem);
         });
     }
 
+    /* ---------- Dropdown custom (menggantikan select bawaan browser) ---------- */
+    (function () {
+        var CHEV = '<svg class="cs-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+        var CHECK = '<svg class="cs-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+        function enhance(select) {
+            var wrap = select.closest('.ed-field');
+            if (!wrap) return;
+            var isSem = select.id === 'semester';
+            var uid = 'cs-' + select.id;
+
+            var trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'form-control cs-trigger' + (select.classList.contains('is-invalid') ? ' is-invalid' : '');
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.setAttribute('aria-expanded', 'false');
+            trigger.setAttribute('aria-controls', uid);
+            trigger.innerHTML = '<span class="cs-val"></span>' + CHEV;
+            select.insertAdjacentElement('afterend', trigger);
+
+            var menu = document.createElement('ul');
+            menu.className = 'cs-menu';
+            menu.id = uid;
+            menu.setAttribute('role', 'listbox');
+            menu.tabIndex = -1;
+            if (isSem) {
+                var head = document.createElement('li');
+                head.className = 'cs-menu-head';
+                head.setAttribute('role', 'presentation');
+                head.textContent = 'Pilih semester';
+                menu.appendChild(head);
+            }
+            var opts = [];
+            Array.prototype.forEach.call(select.options, function (o, i) {
+                var li = document.createElement('li');
+                li.className = 'cs-opt';
+                li.id = uid + '-' + i;
+                li.setAttribute('role', 'option');
+                li.dataset.value = o.value;
+                li.innerHTML = (isSem ? '<span class="cs-num">' + o.value + '</span>' : '') +
+                    '<span class="cs-txt">' + o.textContent + '</span>' + CHECK;
+                menu.appendChild(li);
+                opts.push(li);
+            });
+            document.body.appendChild(menu);
+            wrap.classList.add('cs-on');
+
+            var active = -1, buf = '', bufT = null;
+
+            function selectedIndex() { return select.selectedIndex < 0 ? 0 : select.selectedIndex; }
+            function paint() {
+                var o = select.options[selectedIndex()];
+                trigger.querySelector('.cs-val').textContent = o ? o.textContent : '';
+                opts.forEach(function (li, i) { li.setAttribute('aria-selected', i === selectedIndex() ? 'true' : 'false'); });
+            }
+            function setActive(i, scroll) {
+                if (i < 0 || i >= opts.length) return;
+                if (active > -1) opts[active].classList.remove('is-active');
+                active = i;
+                opts[i].classList.add('is-active');
+                menu.setAttribute('aria-activedescendant', opts[i].id);
+                if (scroll !== false) opts[i].scrollIntoView({ block: 'nearest' });
+            }
+            function place() {
+                var r = trigger.getBoundingClientRect();
+                var h = Math.min(menu.scrollHeight, 440);
+                var below = window.innerHeight - r.bottom, above = r.top;
+                var up = below < h + 16 && above > below;
+                menu.classList.toggle('is-up', up);
+                menu.style.left = r.left + 'px';
+                menu.style.width = r.width + 'px';
+                menu.style.maxHeight = Math.max(160, Math.min(440, (up ? above : below) - 16)) + 'px';
+                if (up) { menu.style.top = 'auto'; menu.style.bottom = (window.innerHeight - r.top + 8) + 'px'; }
+                else { menu.style.bottom = 'auto'; menu.style.top = (r.bottom + 8) + 'px'; }
+            }
+            function isOpen() { return menu.classList.contains('is-open'); }
+            function open() {
+                if (isOpen()) return;
+                place();
+                menu.classList.add('is-open');
+                trigger.setAttribute('aria-expanded', 'true');
+                setActive(selectedIndex());
+            }
+            function close(focusBack) {
+                if (!isOpen()) return;
+                menu.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+                if (focusBack) trigger.focus();
+            }
+            function choose(i) {
+                var changed = select.selectedIndex !== i;
+                select.selectedIndex = i;
+                paint();
+                close(true);
+                if (changed) {
+                    select.dispatchEvent(new Event('input', { bubbles: true }));
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            trigger.addEventListener('click', function () { isOpen() ? close(false) : open(); });
+            trigger.addEventListener('keydown', function (e) {
+                var k = e.key;
+                if (!isOpen()) {
+                    if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Enter' || k === ' ') { e.preventDefault(); open(); }
+                    return;
+                }
+                if (k === 'ArrowDown') { e.preventDefault(); setActive(Math.min(active + 1, opts.length - 1)); }
+                else if (k === 'ArrowUp') { e.preventDefault(); setActive(Math.max(active - 1, 0)); }
+                else if (k === 'Home') { e.preventDefault(); setActive(0); }
+                else if (k === 'End') { e.preventDefault(); setActive(opts.length - 1); }
+                else if (k === 'Enter' || k === ' ') { e.preventDefault(); choose(active); }
+                else if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); close(true); }
+                else if (k === 'Tab') { close(false); }
+                else if (/^[0-9a-z]$/i.test(k)) {
+                    buf += k.toLowerCase();
+                    clearTimeout(bufT); bufT = setTimeout(function () { buf = ''; }, 700);
+                    for (var i = 0; i < opts.length; i++) {
+                        if (select.options[i].value.toLowerCase().indexOf(buf) === 0) { setActive(i); break; }
+                    }
+                }
+            });
+            opts.forEach(function (li, i) {
+                li.addEventListener('mousemove', function () { if (active !== i) setActive(i, false); });
+                li.addEventListener('click', function () { choose(i); });
+            });
+            document.addEventListener('pointerdown', function (e) {
+                if (isOpen() && !menu.contains(e.target) && !trigger.contains(e.target)) close(false);
+            });
+            window.addEventListener('resize', function () { if (isOpen()) place(); });
+            window.addEventListener('scroll', function (e) {
+                if (!isOpen() || menu.contains(e.target)) return;
+                place();
+            }, true);
+
+            // klik label ikut membuka dropdown
+            var lbl = document.querySelector('label[for="' + select.id + '"]');
+            if (lbl) lbl.addEventListener('click', function (e) { e.preventDefault(); trigger.focus(); });
+
+            paint();
+        }
+
+        document.querySelectorAll('.ed-field select').forEach(enhance);
+    })();
+
     /* ---------- Tab ---------- */
     var tabs = document.querySelectorAll('.ed-tab');
     function showTab(name) {
@@ -360,12 +532,12 @@ $maxSem = max(8, $curSem);
     /* ---------- Tombol simpan aktif hanya jika ada perubahan ---------- */
     var fp = $('form-profile'), sp = $('save-profile'), dp = $('dirty-profile');
     var initial = {};
-    ['name', 'email', 'class', 'semester'].forEach(function (k) { initial[k] = fp.elements[k].value; });
+    ['name', 'nim', 'email', 'class', 'semester'].forEach(function (k) { initial[k] = fp.elements[k].value; });
     // Bila halaman muncul kembali setelah error, anggap sudah berubah
     var startDirty = !!document.querySelector('#panel-profile .fe-err');
     function checkDirty() {
         var changed = startDirty;
-        ['name', 'email', 'class', 'semester'].forEach(function (k) {
+        ['name', 'nim', 'email', 'class', 'semester'].forEach(function (k) {
             if (fp.elements[k].value.trim() !== initial[k].trim()) changed = true;
         });
         sp.disabled = !changed;
@@ -384,8 +556,9 @@ $maxSem = max(8, $curSem);
             el.closest('.form-group').appendChild(s);
         }
         fp.querySelectorAll('.is-invalid').forEach(function (n) { n.classList.remove('is-invalid'); });
-        var name = fp.elements.name, email = fp.elements.email;
+        var name = fp.elements.name, email = fp.elements.email, nim = fp.elements.nim;
         if (name.value.trim().length < 3) bad(name, 'Nama minimal 3 karakter.');
+        if (!/^[A-Za-z0-9-]{3,20}$/.test(nim.value.trim())) bad(nim, 'NIM 3-20 karakter: huruf, angka, atau minus.');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) bad(email, 'Format email tidak valid.');
         if (!ok) { e.preventDefault(); return; }
         sp.disabled = true; sp.textContent = 'Menyimpan…';

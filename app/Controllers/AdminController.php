@@ -20,16 +20,35 @@ class AdminController extends Controller
     {
         Auth::requireAdmin();
 
-        $userModel = new User();
+        $userModel    = new User();
         $projectModel = new Project();
+        $claimModel   = new ProjectClaim();
+        $warModel     = new WarSetting();
+
+        $projectStats = $projectModel->dashboardStats();
+        $warSettings  = $warModel->current();
 
         $this->view('admin/dashboard', [
-            'title' => 'Admin Dashboard - TIF Hub',
-            'user'  => Auth::user(),
-            'recentProjects' => array_slice($projectModel->getAllAdmin(), 0, 5),
+            'title'          => 'Admin Dashboard - TIF Hub',
+            'user'           => Auth::user(),
+            'recentProjects' => $projectModel->getRecentWithLeader(6),
+            'recentClaims'   => array_slice($claimModel->getAllAdmin(), 0, 5),
+            'recentStudents' => $userModel->getRecentStudents(5),
+            'byCategory'     => $projectModel->countByCategory(6),
+            'bySemester'     => $projectModel->countBySemesterAdmin(),
+            'war'            => [
+                'settings' => $warSettings,
+                'status'   => $warModel->statusLabel($warSettings),
+            ],
             'stats' => [
-                'students'       => $userModel->countStudents(),
-                'projects'       => $projectModel->countAll(),
+                'students'        => $userModel->countStudents(),
+                'with_project'    => $userModel->countStudentsWithProject(),
+                'projects'        => $projectStats['total'],
+                'published'       => $projectStats['published'],
+                'taken'           => $projectStats['taken'],
+                'free'            => max(0, $projectStats['total'] - $projectStats['taken']),
+                'claims'          => $claimModel->count("status = 'claimed'"),
+                'violations'      => (new ClaimViolation())->countPending(),
             ],
         ]);
     }
@@ -134,6 +153,7 @@ class AdminController extends Controller
             'categories' => (new Category())->forProjects(),
             'semesters'  => (new Semester())->allOrdered(),
             'students'   => (new User())->getStudents(),
+            'assigned'   => (new Project())->getAssignedStudentMap(),
             'csrf'       => Session::getCsrfToken(),
         ]);
     }
@@ -154,7 +174,6 @@ class AdminController extends Controller
             'category_id'   => (int) $this->input('category_id', 0) ?: null,
             'semester_id'   => (int) $this->input('semester_id', 0) ?: null,
             'course_name'   => trim($this->input('course_name', '')),
-            'academic_year' => trim($this->input('academic_year', '')),
             'technologies'  => trim($this->input('technologies', '')),
             'github_url'    => trim($this->input('github_url', '')),
             'demo_url'      => trim($this->input('demo_url', '')),
@@ -169,9 +188,13 @@ class AdminController extends Controller
 
         $id = $projectModel->createProject($data);
 
-        $memberIds = array_filter(array_map('intval', (array) ($this->input('members', []) ?: [])));
-        if ($memberIds) {
-            $projectModel->syncMembers($id, $memberIds);
+        // Admin hanya menetapkan Ketua; anggota lain ditambahkan Ketua dari halaman profilnya
+        $leaderId = (int) $this->input('leader_id', 0);
+        if ($leaderId > 0) {
+            $res = $projectModel->setLeader($id, $leaderId);
+            if (!$res['success']) {
+                Session::flash('error', 'Proyek tersimpan, tetapi Ketua belum ditetapkan: ' . $res['message']);
+            }
         }
 
         $uploaded = $this->handleImageUpload($projectModel, $id);
@@ -206,6 +229,7 @@ class AdminController extends Controller
             'categories' => (new Category())->forProjects(),
             'semesters'  => (new Semester())->allOrdered(),
             'students'   => (new User())->getStudents(),
+            'assigned'   => $projectModel->getAssignedStudentMap((int) $id),
             'csrf'       => Session::getCsrfToken(),
         ]);
     }
@@ -231,7 +255,6 @@ class AdminController extends Controller
             'category_id'   => (int) $this->input('category_id', 0) ?: null,
             'semester_id'   => (int) $this->input('semester_id', 0) ?: null,
             'course_name'   => trim($this->input('course_name', '')),
-            'academic_year' => trim($this->input('academic_year', '')),
             'technologies'  => trim($this->input('technologies', '')),
             'github_url'    => trim($this->input('github_url', '')),
             'demo_url'      => trim($this->input('demo_url', '')),
@@ -241,8 +264,19 @@ class AdminController extends Controller
 
         $projectModel->update((int) $id, $data);
 
-        $memberIds = array_filter(array_map('intval', (array) ($this->input('members', []) ?: [])));
-        $projectModel->syncMembers((int) $id, $memberIds);
+        // null = field tidak dikirim (jangan ubah anggota); '' = admin mengosongkan Ketua
+        $leaderRaw = $this->input('leader_id', null);
+        if ($leaderRaw !== null) {
+            $leaderId = (int) $leaderRaw;
+            if ($leaderId > 0) {
+                $res = $projectModel->setLeader((int) $id, $leaderId);
+                if (!$res['success']) {
+                    Session::flash('error', 'Proyek diperbarui, tetapi Ketua tidak diubah: ' . $res['message']);
+                }
+            } else {
+                $projectModel->releaseAllMembers((int) $id);
+            }
+        }
 
         // Foto: hapus yang dicentang, tambah baru, lalu atur cover
         $projectModel->deleteImages((int) $id, (array) ($this->input('delete_images', []) ?: []));
@@ -346,6 +380,24 @@ class AdminController extends Controller
             'claims'    => $claimModel->getAllAdmin($semesterId !== '' ? (int) $semesterId : null),
             'semesters' => (new Semester())->allOrdered(),
             'semesterId'=> $semesterId,
+        ]);
+    }
+
+    public function claimShow(string $id): void
+    {
+        Auth::requireAdmin();
+        $claim = (new ProjectClaim())->findAdmin((int) $id);
+
+        if (!$claim) {
+            Session::flash('error', 'Tiket klaim tidak ditemukan.');
+            $this->redirect('/admin/claims');
+            return;
+        }
+
+        $this->view('admin/claims/show', [
+            'title' => 'Detail Tiket ' . $claim['ticket_code'] . ' - Admin',
+            'user'  => Auth::user(),
+            'claim' => $claim,
         ]);
     }
 

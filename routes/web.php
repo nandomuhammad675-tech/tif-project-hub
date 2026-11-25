@@ -39,6 +39,13 @@ $router->post('/wishlists/{id}/remove','WishlistController@remove', ['student'])
 $router->get('/profile', 'ProfileController@index', ['student']);
 $router->post('/profile/avatar', 'ProfileController@updateAvatar', ['student']);
 $router->post('/profile/avatar/remove', 'ProfileController@removeAvatar', ['student']);
+$router->get('/profile/edit', 'ProfileController@edit', ['student']);
+$router->post('/profile/update', 'ProfileController@update', ['student']);
+$router->post('/profile/password', 'ProfileController@updatePassword', ['student']);
+$router->get('/profile/students/search', 'ProfileController@searchStudents', ['student']);
+$router->post('/profile/projects/{id}/members/add', 'ProfileController@addMember', ['student']);
+$router->post('/profile/projects/{id}/members/remove', 'ProfileController@removeMember', ['student']);
+$router->post('/profile/projects/{id}/leave', 'ProfileController@leaveProject', ['student']);
 
 // Admin
 $router->get('/admin', 'AdminController@dashboard', ['admin']);
@@ -60,5 +67,6 @@ $router->post('/admin/projects/{id}/delete', 'AdminController@projectDelete',  [
 $router->get('/admin/war',                    'AdminController@war',              ['admin']);
 $router->post('/admin/war',                   'AdminController@warUpdate',        ['admin']);
 $router->get('/admin/claims',                 'AdminController@claims',           ['admin']);
+$router->get('/admin/claims/{id}',            'AdminController@claimShow',        ['admin']);
 $router->get('/admin/violations',             'AdminController@violations',       ['admin']);
 $router->post('/admin/violations/{id}/review','AdminController@violationReview',  ['admin']);

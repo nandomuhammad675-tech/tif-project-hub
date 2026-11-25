@@ -62,6 +62,27 @@ class ProjectClaim extends Model
         return $row ?: null;
     }
 
+    public function findAdmin(int $claimId): ?array
+    {
+        $sql = "SELECT pc.*, p.title AS project_title, p.slug AS project_slug, p.short_desc,
+                       p.course_name, p.technologies, p.thumbnail, p.is_published,
+                       c.name AS category_name,
+                       s.name AS semester_name,
+                       u.name AS student_name, u.nim AS student_nim, u.email AS student_email,
+                       u.class AS student_class, u.avatar AS student_avatar, u.status AS student_status
+                FROM project_claims pc
+                JOIN projects p ON p.id = pc.project_id
+                LEFT JOIN categories c ON c.id = p.category_id
+                JOIN semesters s ON s.id = pc.semester_id
+                JOIN users u ON u.id = pc.user_id
+                WHERE pc.id = ?
+                LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$claimId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public function getByUser(int $userId): array
     {
         $sql = "SELECT pc.*, p.title AS project_title, p.slug AS project_slug,

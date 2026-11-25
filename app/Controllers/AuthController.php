@@ -44,19 +44,22 @@ class AuthController extends Controller
             $this->backWithError('Token keamanan tidak valid. Silakan coba lagi.');
         }
 
+        // Kolom "email" menerima email ATAU NIM (nama field tetap 'email' agar kompatibel)
         $email    = trim($this->input('email', ''));
         $password = $this->input('password', '');
 
         if (empty($email) || empty($password)) {
-            Session::flash('error', 'Email dan password wajib diisi.');
+            Session::flash('error', 'Email/NIM dan password wajib diisi.');
             Session::flash('old_email', $email);
             $this->redirect('/login');
         }
 
-        $user = $this->userModel->findByEmail($email);
+        $user = strpos($email, '@') !== false
+            ? $this->userModel->findByEmail($email)
+            : $this->userModel->findByNim($email);
 
         if (!$user) {
-            Session::flash('error', 'Email atau password salah.');
+            Session::flash('error', 'Email/NIM atau password salah.');
             Session::flash('old_email', $email);
             $this->redirect('/login');
         }
@@ -67,7 +70,7 @@ class AuthController extends Controller
         }
 
         if (!$this->userModel->verifyPassword($password, $user['password'])) {
-            Session::flash('error', 'Email atau password salah.');
+            Session::flash('error', 'Email/NIM atau password salah.');
             Session::flash('old_email', $email);
             $this->redirect('/login');
         }
@@ -124,6 +127,8 @@ class AuthController extends Controller
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Email tidak valid.';
+        } elseif (!email_domain_allowed($email)) {
+            $errors[] = email_domain_hint();
         } elseif ($this->userModel->findByEmail($email)) {
             $errors[] = 'Email sudah terdaftar.';
         }

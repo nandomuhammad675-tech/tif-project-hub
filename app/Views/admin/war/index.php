@@ -107,6 +107,28 @@ $isOpen    = !empty($war['is_open']);
     .wr-presets { margin-top: 1rem; padding: .9rem 1rem; background: #f4f9fb; border-radius: 14px; }
     .wr-presets .t { font-size: .78rem; font-weight: 800; color: var(--muted); margin-bottom: .55rem; }
 
+    /* Dropdown semester (custom, senada dengan pemilih tanggal) */
+    .wr-dd { position: relative; }
+    .wr-native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+    .wr-dd-btn { width: 100%; display: flex; align-items: center; gap: .65rem; text-align: left; font: inherit; font-size: .92rem; padding: .75rem .9rem; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; color: var(--muted); transition: border-color .15s, box-shadow .15s; }
+    .wr-dd-btn:hover, .wr-dd.open .wr-dd-btn { border-color: var(--primary); }
+    .wr-dd.open .wr-dd-btn, .wr-dd-btn:focus-visible { box-shadow: 0 0 0 3px rgba(3,121,146,.15); outline: none; }
+    .wr-dd-btn .lead { width: 18px; height: 18px; flex: none; color: var(--primary); }
+    .wr-dd-btn .chev { width: 18px; height: 18px; flex: none; color: var(--muted); transition: transform .2s ease; }
+    .wr-dd.open .chev { transform: rotate(180deg); color: var(--primary); }
+    .wr-dd.has-value .wr-dd-btn { color: var(--text); font-weight: 700; }
+    .wr-dd-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wr-dd-text small { font-weight: 600; color: var(--muted); font-size: .78rem; margin-left: .35rem; }
+    .wr-dd-pop { position: absolute; z-index: 60; top: calc(100% + 8px); left: 0; right: 0; margin: 0; padding: .4rem; list-style: none; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 60px rgba(2,37,51,.28); }
+    .wr-dd-pop.up { top: auto; bottom: calc(100% + 8px); }
+    .wr-dd-pop[hidden] { display: none; }
+    .wr-dd-opt { display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; color: var(--text); transition: background .12s; }
+    .wr-dd-opt small { color: var(--muted); font-weight: 600; font-size: .78rem; margin-left: auto; }
+    .wr-dd-opt .ck { width: 16px; height: 16px; flex: none; color: #fff; opacity: 0; }
+    .wr-dd-opt.act { background: var(--primary-light); }
+    .wr-dd-opt.sel { font-weight: 800; color: var(--primary-dark); }
+    .wr-dd-opt.sel .ck { opacity: 1; color: var(--primary); }
+
     /* Panel ringkasan */
     .wr-side { position: sticky; top: 20px; }
     .wr-preview h3 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: .8rem; }
@@ -126,7 +148,7 @@ $isOpen    = !empty($war['is_open']);
     @media (max-width: 640px) { .wr-stats { grid-template-columns: 1fr; } .wr-times { grid-template-columns: 1fr; } .wr-step { flex-direction: column; gap: .6rem; } }
 </style>
 
-<div class="wr-head">
+<div class="wr-head page-head">
     <div>
         <h1>Project War</h1>
         <p>Atur kapan mahasiswa boleh mengklaim tiket proyek.</p>
@@ -135,17 +157,17 @@ $isOpen    = !empty($war['is_open']);
 </div>
 
 <div class="wr-stats">
-    <div class="wr-stat">
+    <div class="wr-stat" data-reveal="zoom">
         <div class="l">Tersedia diklaim</div>
         <div class="v primary"><?= $available ?></div>
         <small>Proyek yang masih bisa dipilih mahasiswa</small>
     </div>
-    <div class="wr-stat">
+    <div class="wr-stat" data-reveal="zoom">
         <div class="l">Sudah diklaim</div>
         <div class="v"><?= $claimed ?></div>
         <small>dari <?= $totalProj ?> proyek di semester aktif</small>
     </div>
-    <div class="wr-stat">
+    <div class="wr-stat" data-reveal="zoom">
         <div class="l">Progres klaim</div>
         <div class="v"><?= $pct ?>%</div>
         <div class="wr-bar"><i style="width:<?= $pct ?>%"></i></div>
@@ -155,14 +177,15 @@ $isOpen    = !empty($war['is_open']);
 <form method="POST" action="/admin/war" id="war-form" class="wr-layout" novalidate>
     <input type="hidden" name="_token" value="<?= e($csrf) ?>">
 
-    <div class="wr-card">
+    <div class="wr-card" data-reveal="up">
         <!-- 1. Semester -->
-        <section class="wr-step">
+        <section class="wr-step" data-reveal="soft">
             <span class="n">1</span>
             <div class="body">
                 <h2>Semester aktif</h2>
                 <p class="hint">Mahasiswa hanya bisa mengklaim proyek dari semester ini.</p>
-                <select name="active_semester_id" id="wr-semester" class="form-control" required>
+                <div class="wr-dd" id="wr-sem-dd" data-ph="Pilih semester">
+                    <select name="active_semester_id" id="wr-semester" class="wr-native" required tabindex="-1" aria-hidden="true">
                     <option value="">— Pilih semester —</option>
                     <?php foreach ($semesters as $s): ?>
                     <option value="<?= (int) $s['id'] ?>" <?= ((int) ($war['active_semester_id'] ?? 0) === (int) $s['id']) ? 'selected' : '' ?>>
@@ -170,11 +193,18 @@ $isOpen    = !empty($war['is_open']);
                     </option>
                     <?php endforeach; ?>
                 </select>
+                    <button type="button" class="wr-dd-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+                        <span class="wr-dd-text"></span>
+                        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <ul class="wr-dd-pop" role="listbox" hidden></ul>
+                </div>
             </div>
         </section>
 
         <!-- 2. Buka / tutup -->
-        <section class="wr-step">
+        <section class="wr-step" data-reveal="soft">
             <span class="n">2</span>
             <div class="body">
                 <h2>Buka war</h2>
@@ -189,7 +219,7 @@ $isOpen    = !empty($war['is_open']);
         </section>
 
         <!-- 3. Jadwal -->
-        <section class="wr-step">
+        <section class="wr-step" data-reveal="soft">
             <span class="n">3</span>
             <div class="body">
                 <h2>Jadwal war</h2>
@@ -237,7 +267,7 @@ $isOpen    = !empty($war['is_open']);
     </div>
 
     <aside class="wr-side">
-        <div class="wr-card wr-preview">
+        <div class="wr-card wr-preview" data-reveal="up">
             <h3>Ringkasan pengaturan</h3>
             <div class="status"><span class="wr-pill" id="pv-pill"><span class="dot"></span><span id="pv-status">…</span></span></div>
             <p class="note" id="pv-note"></p>
@@ -250,7 +280,7 @@ $isOpen    = !empty($war['is_open']);
             <div class="wr-error" id="pv-error" role="alert"></div>
             <button type="submit" class="btn btn-primary wr-save" id="wr-save">Simpan pengaturan</button>
         </div>
-        <p class="wr-links">
+        <p class="wr-links" data-reveal="soft">
             <a href="/admin/claims">Lihat semua tiket klaim →</a><br>
             <a href="/admin/violations">Lihat pelanggaran klaim →</a>
         </p>
@@ -340,11 +370,12 @@ $isOpen    = !empty($war['is_open']);
         };
         this.open = function () {
             pickers.forEach(function (p) { if (p !== self) p.close(); });
-            pop.classList.remove('up');
+            // Utamakan membuka ke ATAS supaya kalender tidak terpotong di bawah layar
+            pop.classList.add('up');
             pop.hidden = false; root.classList.add('open');
-            // Jika bagian bawah terpotong layar, buka ke atas bila ruangnya cukup
+            // Hanya buka ke bawah bila di atas tidak muat DAN di bawah lebih lega
             var r = pop.getBoundingClientRect(), f = root.getBoundingClientRect(), vh = window.innerHeight;
-            if (r.bottom > vh - 12 && f.top > r.height + 24 && f.top > vh - f.bottom) pop.classList.add('up');
+            if (r.top < 12 && (vh - f.bottom) > f.top) pop.classList.remove('up');
             // Pastikan seluruh kalender terlihat (scroll seperlunya)
             pop.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         };
@@ -398,7 +429,7 @@ $isOpen    = !empty($war['is_open']);
         $('pv-note').textContent = note;
 
         var semOpt = sem.options[sem.selectedIndex];
-        $('pv-sem').textContent = sem.value ? semOpt.text.replace(/\s+/g, ' ').trim() : 'Belum dipilih';
+        $('pv-sem').textContent = sem.value ? semOpt.text.replace(/\s+/g, ' ').trim().split(' · ')[0] : 'Belum dipilih';
         $('pv-start').textContent = s ? human(s) : 'Tanpa batas';
         $('pv-end').textContent = e ? human(e) : 'Tanpa batas';
         $('pv-dur').textContent = (s && e && e > s) ? span(e - s) : '-';
@@ -428,5 +459,68 @@ $isOpen    = !empty($war['is_open']);
     document.getElementById('war-form').addEventListener('submit', function (e) { if (saveBtn.disabled) e.preventDefault(); });
     summary();
     setInterval(summary, 30000);
+})();
+</script>
+
+<script>
+(function () {
+    var root = document.getElementById('wr-sem-dd');
+    if (!root) return;
+    var sel = root.querySelector('select'), btn = root.querySelector('.wr-dd-btn'),
+        text = root.querySelector('.wr-dd-text'), pop = root.querySelector('.wr-dd-pop');
+    var ph = root.getAttribute('data-ph') || 'Pilih';
+    var items = [], act = -1;
+    var CK = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+    function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    function split(o) { var p = o.text.replace(/\s+/g, ' ').trim().split(' · '); return { name: p[0], year: p[1] || '' }; }
+
+    // bangun daftar dari <option> asli
+    Array.prototype.forEach.call(sel.options, function (o) {
+        if (!o.value) return;
+        var t = split(o), li = document.createElement('li');
+        li.className = 'wr-dd-opt'; li.setAttribute('role', 'option'); li.dataset.v = o.value;
+        li.innerHTML = CK + '<span>' + esc(t.name) + '</span>';
+        pop.appendChild(li); items.push(li);
+    });
+
+    function paint() {
+        var o = sel.options[sel.selectedIndex];
+        if (sel.value && o) { var t = split(o); text.textContent = t.name; }
+        else text.textContent = ph;
+        root.classList.toggle('has-value', !!sel.value);
+        items.forEach(function (li) { var on = li.dataset.v === sel.value; li.classList.toggle('sel', on); li.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    }
+    function setAct(i) {
+        if (!items.length) return;
+        act = (i + items.length) % items.length;
+        items.forEach(function (li, k) { li.classList.toggle('act', k === act); });
+        items[act].scrollIntoView({ block: 'nearest' });
+    }
+    function open() {
+        pop.classList.remove('up'); pop.hidden = false; root.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+        var r = pop.getBoundingClientRect(), f = root.getBoundingClientRect(), vh = window.innerHeight;
+        if (r.bottom > vh - 12 && f.top > r.height + 24 && f.top > vh - f.bottom) pop.classList.add('up');
+        var cur = items.findIndex(function (li) { return li.dataset.v === sel.value; });
+        setAct(cur < 0 ? 0 : cur);
+    }
+    function close() { pop.hidden = true; root.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    function pick(li) {
+        if (sel.value !== li.dataset.v) { sel.value = li.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+        paint(); close(); btn.focus();
+    }
+
+    btn.addEventListener('click', function () { pop.hidden ? open() : close(); });
+    btn.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (pop.hidden) open(); else setAct(act + (e.key === 'ArrowDown' ? 1 : -1)); }
+        else if ((e.key === 'Enter' || e.key === ' ') && !pop.hidden) { e.preventDefault(); if (items[act]) pick(items[act]); }
+        else if (e.key === 'Escape') close();
+        else if (e.key === 'Tab') close();
+    });
+    pop.addEventListener('click', function (e) { var li = e.target.closest('.wr-dd-opt'); if (li) pick(li); });
+    pop.addEventListener('mousemove', function (e) { var li = e.target.closest('.wr-dd-opt'); if (li) setAct(items.indexOf(li)); });
+    document.addEventListener('mousedown', function (e) { if (!root.contains(e.target)) close(); });
+    sel.addEventListener('change', paint);
+    paint();
 })();
 </script>

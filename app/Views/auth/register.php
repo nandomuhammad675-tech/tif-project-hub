@@ -175,12 +175,12 @@
                 </div>
                 <div class="form-group">
                     <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" placeholder="nama@email.com" required>
+                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" placeholder="nama@gmail.com" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="class">Kelas</label>
-                        <input type="text" id="class" name="class" value="<?= htmlspecialchars($old['class'] ?? '') ?>" placeholder="TI-1A">
+                        <input type="text" id="class" name="class" value="<?= htmlspecialchars($old['class'] ?? '') ?>" placeholder="A">
                     </div>
                     <div class="form-group">
                         <label for="semester">Semester</label>

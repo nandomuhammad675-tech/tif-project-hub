@@ -170,3 +170,45 @@ function initials(?string $name): string
     }
     return $out ?: '?';
 }
+
+
+/**
+ * Pesan untuk email yang domainnya tidak dikenal
+ */
+function email_domain_hint(): string
+{
+    return 'Gunakan email aktif, misalnya nama@gmail.com (Gmail, Yahoo, Outlook, iCloud, atau email kampus berakhiran .ac.id).';
+}
+
+/**
+ * Hanya terima email dari penyedia umum atau email kampus (.ac.id),
+ * sehingga alamat asal-asalan seperti andi@contoh.com ditolak.
+ */
+function email_domain_allowed(string $email): bool
+{
+    $at = strrpos($email, '@');
+    if ($at === false) {
+        return false;
+    }
+    $domain = strtolower(substr($email, $at + 1));
+
+    $allowed = [
+        'gmail.com', 'googlemail.com',
+        'yahoo.com', 'yahoo.co.id', 'ymail.com',
+        'outlook.com', 'outlook.co.id', 'hotmail.com', 'live.com', 'msn.com',
+        'icloud.com', 'me.com',
+        'proton.me', 'protonmail.com',
+    ];
+
+    if (in_array($domain, $allowed, true)) {
+        return true;
+    }
+    if (substr($domain, -6) === '.ac.id') {
+        return true;
+    }
+    // Akun demo bawaan hanya valid di lingkungan lokal
+    if (getenv('APP_ENV') === 'local' && $domain === 'tifhub.local') {
+        return true;
+    }
+    return false;
+}
