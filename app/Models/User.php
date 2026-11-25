@@ -62,6 +62,24 @@ class User extends Model
     /**
      * Ambil semua mahasiswa aktif
      */
+    /**
+     * Cari mahasiswa aktif yang belum punya proyek (untuk menambah anggota kelompok)
+     */
+    public function searchAvailableStudents(string $q, int $limit = 8): array
+    {
+        $like = '%' . addcslashes($q, '\\%_') . '%';
+        $stmt = $this->db->prepare(
+            "SELECT id, nim, name, class FROM users
+             WHERE role = 'mahasiswa' AND status = 'active'
+               AND id NOT IN (SELECT user_id FROM project_members)
+               AND (name LIKE ? OR nim LIKE ?)
+             ORDER BY name ASC
+             LIMIT " . (int) $limit
+        );
+        $stmt->execute([$like, $like]);
+        return $stmt->fetchAll();
+    }
+
     public function getStudents(): array
     {
         $stmt = $this->db->prepare(

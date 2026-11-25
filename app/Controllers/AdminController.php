@@ -134,6 +134,7 @@ class AdminController extends Controller
             'categories' => (new Category())->forProjects(),
             'semesters'  => (new Semester())->allOrdered(),
             'students'   => (new User())->getStudents(),
+            'assigned'   => (new Project())->getAssignedStudentMap(),
             'csrf'       => Session::getCsrfToken(),
         ]);
     }
@@ -169,9 +170,13 @@ class AdminController extends Controller
 
         $id = $projectModel->createProject($data);
 
-        $memberIds = array_filter(array_map('intval', (array) ($this->input('members', []) ?: [])));
-        if ($memberIds) {
-            $projectModel->syncMembers($id, $memberIds);
+        // Admin hanya menetapkan Ketua; anggota lain ditambahkan Ketua dari halaman profilnya
+        $leaderId = (int) $this->input('leader_id', 0);
+        if ($leaderId > 0) {
+            $res = $projectModel->setLeader($id, $leaderId);
+            if (!$res['success']) {
+                Session::flash('error', 'Proyek tersimpan, tetapi Ketua belum ditetapkan: ' . $res['message']);
+            }
         }
 
         $uploaded = $this->handleImageUpload($projectModel, $id);
@@ -206,6 +211,7 @@ class AdminController extends Controller
             'categories' => (new Category())->forProjects(),
             'semesters'  => (new Semester())->allOrdered(),
             'students'   => (new User())->getStudents(),
+            'assigned'   => $projectModel->getAssignedStudentMap((int) $id),
             'csrf'       => Session::getCsrfToken(),
         ]);
     }
@@ -241,8 +247,19 @@ class AdminController extends Controller
 
         $projectModel->update((int) $id, $data);
 
-        $memberIds = array_filter(array_map('intval', (array) ($this->input('members', []) ?: [])));
-        $projectModel->syncMembers((int) $id, $memberIds);
+        // null = field tidak dikirim (jangan ubah anggota); '' = admin mengosongkan Ketua
+        $leaderRaw = $this->input('leader_id', null);
+        if ($leaderRaw !== null) {
+            $leaderId = (int) $leaderRaw;
+            if ($leaderId > 0) {
+                $res = $projectModel->setLeader((int) $id, $leaderId);
+                if (!$res['success']) {
+                    Session::flash('error', 'Proyek diperbarui, tetapi Ketua tidak diubah: ' . $res['message']);
+                }
+            } else {
+                $projectModel->releaseAllMembers((int) $id);
+            }
+        }
 
         // Foto: hapus yang dicentang, tambah baru, lalu atur cover
         $projectModel->deleteImages((int) $id, (array) ($this->input('delete_images', []) ?: []));

@@ -185,6 +185,8 @@ $showDemo = getenv('APP_ENV') === 'local';
         .toggle .eye-off { display: none; }
         .toggle[aria-pressed="true"] .eye { display: none; }
         .toggle[aria-pressed="true"] .eye-off { display: block; }
+        .id-mode { display: block; max-height: 0; overflow: hidden; margin-top: 0; font-size: .76rem; font-weight: 700; color: var(--primary); opacity: 0; transition: max-height .2s ease, margin-top .2s ease, opacity .2s ease; }
+        .id-mode.show { max-height: 1.6em; margin-top: .4rem; opacity: 1; }
         .hint { display: none; margin-top: .4rem; font-size: .78rem; font-weight: 600; color: #b45309; }
         .hint.show { display: block; }
 
@@ -320,12 +322,14 @@ $showDemo = getenv('APP_ENV') === 'local';
                 <input type="hidden" name="_token" value="<?= e($csrf) ?>">
 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">Email atau NIM</label>
                     <div class="field">
-                        <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/></svg>
-                        <input type="email" id="email" name="email" value="<?= e($oldEmail) ?>"
-                               placeholder="nama@email.com" autocomplete="username" required>
+                        <svg class="lead" id="idIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/></svg>
+                        <input type="text" id="email" name="email" value="<?= e($oldEmail) ?>"
+                               placeholder="nama@email.com atau NIM" autocomplete="username"
+                               autocapitalize="none" autocorrect="off" spellcheck="false" required>
                     </div>
+                    <span class="id-mode" id="idMode" aria-live="polite"></span>
                 </div>
 
                 <div class="form-group">
@@ -385,6 +389,25 @@ $showDemo = getenv('APP_ENV') === 'local';
         // Fokus otomatis: ke password bila email sudah terisi (setelah salah login)
         (email.value ? pw : email).focus();
 
+        // Deteksi email vs NIM: ganti ikon dan tampilkan petunjuk singkat
+        var idIcon = document.getElementById('idIcon');
+        var idMode = document.getElementById('idMode');
+        var ICON_MAIL = '<rect x="2" y="4" width="20" height="16" rx="3"/><path d="m22 7-10 6L2 7"/>';
+        var ICON_NIM  = '<path d="M16 10h2M16 14h2M6.17 15a3 3 0 0 1 5.66 0"/><circle cx="9" cy="11" r="2"/><rect x="2" y="5" width="20" height="14" rx="3"/>';
+        var curMode = '';
+        function detectMode() {
+            var v = email.value.trim();
+            var m = v === '' ? '' : (v.indexOf('@') > -1 ? 'email' : 'nim');
+            if (m === curMode) return;
+            curMode = m;
+            idIcon.innerHTML = (m === 'nim') ? ICON_NIM : ICON_MAIL;
+            idMode.textContent = m === 'nim' ? 'Masuk menggunakan NIM' : (m === 'email' ? 'Masuk menggunakan email' : '');
+            idMode.classList.toggle('show', m !== '');
+            email.setAttribute('inputmode', m === 'nim' ? 'numeric' : 'email');
+        }
+        email.addEventListener('input', detectMode);
+        detectMode();
+
         // Tampilkan / sembunyikan password
         toggle.addEventListener('click', function () {
             var show = pw.type === 'password';
@@ -407,6 +430,7 @@ $showDemo = getenv('APP_ENV') === 'local';
         document.querySelectorAll('.demo-btn').forEach(function (b) {
             b.addEventListener('click', function () {
                 email.value = b.dataset.email;
+                detectMode();
                 pw.value = b.dataset.pass;
                 btn.focus();
             });

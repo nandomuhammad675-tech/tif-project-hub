@@ -185,7 +185,6 @@ $semesterText = ($war['semester_name'] ?? null)
     .sem-info small b { color: var(--primary-dark); font-weight: 800; font-size: .95rem; }
     .sem-bar { display: block; height: 6px; border-radius: 999px; background: var(--primary-light); margin-top: .55rem; overflow: hidden; }
     .sem-bar i { display: block; height: 100%; border-radius: inherit; background: var(--grad); }
-    .sem-now { font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #065f46; background: #d1fae5; padding: .15rem .5rem; border-radius: 999px; }
     .sem-go { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--primary); background: var(--primary-light); font-weight: 800; opacity: 0; translate: -6px 0; transition: all .25s ease; }
     .sem-card:hover .sem-go { opacity: 1; translate: 0 0; }
     .sem-card.is-empty { opacity: .6; }
@@ -359,7 +358,6 @@ $semesterText = ($war['semester_name'] ?? null)
 
 <?php if (!empty($semesters)):
     $maxSem   = max(1, ...array_map(fn($x) => (int) $x['total'], $semesters));
-    $activeId = (int) ($war['active_semester_id'] ?? 0);
 ?>
 <div class="section-title">
     <span>🎓 Jelajahi per Semester</span>
@@ -374,7 +372,7 @@ $semesterText = ($war['semester_name'] ?? null)
     <a href="/projects?semester_id=<?= (int) $sm['id'] ?>" class="sem-card<?= $tot === 0 ? ' is-empty' : '' ?>">
         <span class="sem-num"><?= e($num) ?></span>
         <span class="sem-info">
-            <strong><?= e($sm['name']) ?><?php if ($activeId && (int) $sm['id'] === $activeId): ?><span class="sem-now">Aktif</span><?php endif; ?></strong>
+            <strong><?= e($sm['name']) ?></strong>
             <small><b><?= $tot ?></b> proyek</small>
             <span class="sem-bar"><i style="width:<?= $pct ?>%"></i></span>
         </span>

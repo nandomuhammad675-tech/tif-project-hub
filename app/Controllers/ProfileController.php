@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Session;
 use App\Helpers\ImageUploader;
 use App\Models\User;
+use App\Models\Project;
 use App\Models\ProjectClaim;
 use App\Models\WarSetting;
 
@@ -41,9 +42,23 @@ class ProfileController extends Controller
             $activeClaim = $claimModel->findByUserAndSemester((int) $user['id'], (int) $war['active_semester_id']);
         }
 
+        // Anggota tiap proyek (untuk panel "Kelompok Proyek")
+        $projectModel = new Project();
+        $teams = [];
+        foreach ($myProjects as $p) {
+            $teams[] = [
+                'id'      => (int) $p['id'],
+                'title'   => $p['title'],
+                'slug'    => $p['slug'],
+                'role'    => $p['role_in_project'],
+                'members' => $projectModel->getMembers((int) $p['id']),
+            ];
+        }
+
         $this->view('student/profile', [
             'title'       => 'Profil Saya - TIF Hub',
             'user'        => $user,
+            'teams'       => $teams,
             'myProjects'  => $myProjects,
             'claims'      => $claims,
             'activeClaim' => $activeClaim,
@@ -147,6 +162,7 @@ class ProfileController extends Controller
         $userModel = new User();
 
         $name     = trim((string) $this->input('name', ''));
+        $nim      = trim((string) $this->input('nim', ''));
         $email    = trim((string) $this->input('email', ''));
         $class    = strtoupper(trim((string) $this->input('class', '')));
         $semester = (int) $this->input('semester', 0);
@@ -161,14 +177,31 @@ class ProfileController extends Controller
             $errors['name'] = 'Nama maksimal 100 karakter.';
         }
 
+        if ($nim === '') {
+            $errors['nim'] = 'NIM wajib diisi.';
+        } elseif (!preg_match('/^[A-Za-z0-9\-]{3,20}$/', $nim)) {
+            $errors['nim'] = 'NIM hanya boleh huruf, angka, atau tanda minus (3-20 karakter).';
+        } else {
+            $nimOwner = $userModel->findByNim($nim);
+            if ($nimOwner && (int) $nimOwner['id'] !== $userId) {
+                $errors['nim'] = 'NIM ini sudah terdaftar di akun lain.';
+            }
+        }
+
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'Format email tidak valid.';
         } elseif (mb_strlen($email) > 150) {
             $errors['email'] = 'Email maksimal 150 karakter.';
         } else {
-            $existing = $userModel->findByEmail($email);
-            if ($existing && (int) $existing['id'] !== $userId) {
-                $errors['email'] = 'Email ini sudah dipakai akun lain.';
+            $currentEmail = (string) (($userModel->find($userId)['email']) ?? '');
+            // Domain hanya dicek bila email benar-benar diganti
+            if (strcasecmp($email, $currentEmail) !== 0 && !email_domain_allowed($email)) {
+                $errors['email'] = email_domain_hint();
+            } else {
+                $existing = $userModel->findByEmail($email);
+                if ($existing && (int) $existing['id'] !== $userId) {
+                    $errors['email'] = 'Email ini sudah dipakai akun lain.';
+                }
             }
         }
 
@@ -182,12 +215,13 @@ class ProfileController extends Controller
 
         if ($errors) {
             $this->editError('profile', $errors, [
-                'name' => $name, 'email' => $email, 'class' => $class, 'semester' => $semester,
+                'name' => $name, 'nim' => $nim, 'email' => $email, 'class' => $class, 'semester' => $semester,
             ]);
         }
 
         $userModel->update($userId, [
             'name'     => $name,
+            'nim'      => $nim,
             'email'    => $email,
             'class'    => $class !== '' ? $class : null,
             'semester' => $semester,
@@ -195,6 +229,7 @@ class ProfileController extends Controller
 
         // Sinkronkan session supaya navbar & profil langsung berubah
         Session::set('user_name', $name);
+        Session::set('user_nim', $nim);
         Session::set('user_email', $email);
         Session::set('user_class', $class !== '' ? $class : null);
         Session::set('user_semester', $semester);
@@ -261,6 +296,96 @@ class ProfileController extends Controller
             Session::flash('old', $old);
         }
         $this->redirect('/profile/edit');
+    }
+
+    // ------------------------------------------------------------
+    // Kelompok proyek: Ketua menambah / mengeluarkan anggota
+    // ------------------------------------------------------------
+
+    /**
+     * Cari mahasiswa yang belum punya proyek (JSON, khusus Ketua)
+     */
+    public function searchStudents(): void
+    {
+        Auth::requireStudent();
+
+        if (!(new Project())->isLeaderOfAny((int) Auth::id())) {
+            $this->json(['results' => []], 403);
+        }
+
+        $q = trim((string) $this->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            $this->json(['results' => []]);
+        }
+
+        $rows = (new User())->searchAvailableStudents($q, 8);
+        $this->json(['results' => array_map(fn($r) => [
+            'id'    => (int) $r['id'],
+            'name'  => (string) $r['name'],
+            'nim'   => (string) ($r['nim'] ?? ''),
+            'class' => (string) ($r['class'] ?? ''),
+        ], $rows)]);
+    }
+
+    public function addMember(string $id): void
+    {
+        Auth::requireStudent();
+        if (!$this->validateCsrf()) {
+            $this->teamResult(false, 'Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $projectId = (int) $id;
+        $projectModel = new Project();
+        if (!$projectModel->isLeader($projectId, (int) Auth::id())) {
+            $this->teamResult(false, 'Hanya Ketua yang bisa menambah anggota kelompok.');
+        }
+
+        $res = $projectModel->addMember($projectId, (int) $this->input('user_id', 0));
+        $this->teamResult($res['success'], $res['message']);
+    }
+
+    public function removeMember(string $id): void
+    {
+        Auth::requireStudent();
+        if (!$this->validateCsrf()) {
+            $this->teamResult(false, 'Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $projectId = (int) $id;
+        $projectModel = new Project();
+        if (!$projectModel->isLeader($projectId, (int) Auth::id())) {
+            $this->teamResult(false, 'Hanya Ketua yang bisa mengeluarkan anggota.');
+        }
+
+        $res = $projectModel->removeMember($projectId, (int) $this->input('user_id', 0));
+        $this->teamResult($res['success'], $res['message']);
+    }
+
+    /**
+     * Anggota (bukan Ketua) keluar dari kelompok sendiri
+     */
+    public function leaveProject(string $id): void
+    {
+        Auth::requireStudent();
+        if (!$this->validateCsrf()) {
+            $this->teamResult(false, 'Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $projectId = (int) $id;
+        $me = (int) Auth::id();
+        $projectModel = new Project();
+        if (!$projectModel->isMember($projectId, $me)) {
+            $this->teamResult(false, 'Kamu bukan anggota kelompok ini.');
+        }
+
+        $res = $projectModel->removeMember($projectId, $me);
+        $this->teamResult($res['success'], $res['success'] ? 'Kamu sudah keluar dari kelompok.' : $res['message']);
+    }
+
+    private function teamResult(bool $ok, string $message): void
+    {
+        Session::flash($ok ? 'success' : 'error', $message);
+        $this->redirect('/profile#kelompok');
     }
 
     /** Pesan error lalu kembali ke halaman profil */

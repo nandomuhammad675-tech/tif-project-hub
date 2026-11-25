@@ -168,6 +168,27 @@ class Project extends Model
         return (bool) $stmt->fetch();
     }
 
+    /**
+     * Peta [user_id => judul proyek] untuk mahasiswa yang sudah tergabung di proyek,
+     * tidak termasuk proyek $excludeProjectId (dipakai saat edit proyek).
+     */
+    public function getAssignedStudentMap(?int $excludeProjectId = null): array
+    {
+        $sql = 'SELECT pm.user_id, p.title FROM project_members pm JOIN projects p ON p.id = pm.project_id';
+        $params = [];
+        if ($excludeProjectId) {
+            $sql .= ' WHERE pm.project_id != ?';
+            $params[] = $excludeProjectId;
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $map = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $map[(int) $row['user_id']] = (string) $row['title'];
+        }
+        return $map;
+    }
+
     public function getMembers(int $projectId): array
     {
         $sql = "SELECT u.id, u.name, u.nim, u.class, pm.role_in_project
@@ -212,7 +233,6 @@ class Project extends Model
                 FROM semesters s
                 LEFT JOIN projects p ON p.semester_id = s.id AND p.is_published = 1
                 GROUP BY s.id
-                HAVING total > 0
                 ORDER BY s.id ASC";
         return $this->db->query($sql)->fetchAll();
     }
@@ -304,6 +324,142 @@ class Project extends Model
         $stmt->execute([$projectId, $userId, 'Ketua']);
 
         return ['success' => true, 'message' => 'Berhasil mengambil proyek. Selamat mengerjakan!'];
+    }
+
+    // ------------------------------------------------------------------
+    // Kelompok proyek: Ketua ditetapkan admin, anggota ditambah oleh Ketua
+    // ------------------------------------------------------------------
+
+    public function isLeader(int $projectId, int $userId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM project_members WHERE project_id = ? AND user_id = ? AND role_in_project = 'Ketua'"
+        );
+        $stmt->execute([$projectId, $userId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    public function isLeaderOfAny(int $userId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM project_members WHERE user_id = ? AND role_in_project = 'Ketua'"
+        );
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    public function isMember(int $projectId, int $userId): bool
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) FROM project_members WHERE project_id = ? AND user_id = ?');
+        $stmt->execute([$projectId, $userId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Pastikan $userId adalah mahasiswa aktif.
+     */
+    private function activeStudent(int $userId): ?array
+    {
+        $u = (new User())->find($userId);
+        if (!$u || ($u['role'] ?? '') !== 'mahasiswa' || ($u['status'] ?? 'active') !== 'active') {
+            return null;
+        }
+        return $u;
+    }
+
+    /**
+     * Tambah anggota (role "Anggota"). Mahasiswa harus belum punya proyek lain.
+     */
+    public function addMember(int $projectId, int $userId): array
+    {
+        if (!$this->find($projectId)) {
+            return ['success' => false, 'message' => 'Proyek tidak ditemukan.'];
+        }
+        $u = $this->activeStudent($userId);
+        if (!$u) {
+            return ['success' => false, 'message' => 'Mahasiswa tidak ditemukan.'];
+        }
+        if ($this->userHasProject($userId)) {
+            return ['success' => false, 'message' => $u['name'] . ' sudah tergabung di proyek lain.'];
+        }
+        try {
+            $this->db->prepare(
+                'INSERT INTO project_members (project_id, user_id, role_in_project, created_at) VALUES (?, ?, ?, NOW())'
+            )->execute([$projectId, $userId, 'Anggota']);
+        } catch (\Throwable $e) {
+            return ['success' => false, 'message' => 'Gagal menambahkan anggota. Silakan coba lagi.'];
+        }
+        return ['success' => true, 'message' => $u['name'] . ' berhasil ditambahkan ke kelompok.'];
+    }
+
+    /**
+     * Keluarkan anggota. Ketua tidak bisa dikeluarkan (diganti admin).
+     */
+    public function removeMember(int $projectId, int $userId): array
+    {
+        $stmt = $this->db->prepare('SELECT role_in_project FROM project_members WHERE project_id = ? AND user_id = ?');
+        $stmt->execute([$projectId, $userId]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            return ['success' => false, 'message' => 'Anggota tidak ditemukan di kelompok ini.'];
+        }
+        if (($row['role_in_project'] ?? '') === 'Ketua') {
+            return ['success' => false, 'message' => 'Ketua tidak bisa dikeluarkan. Hubungi admin untuk mengganti Ketua.'];
+        }
+        $this->db->prepare('DELETE FROM project_members WHERE project_id = ? AND user_id = ?')->execute([$projectId, $userId]);
+        return ['success' => true, 'message' => 'Anggota dikeluarkan dari kelompok.'];
+    }
+
+    /**
+     * Tetapkan Ketua proyek (dipakai admin). Ketua lama menjadi Anggota,
+     * anggota lain tidak disentuh.
+     */
+    public function setLeader(int $projectId, int $userId): array
+    {
+        if (!$this->find($projectId)) {
+            return ['success' => false, 'message' => 'Proyek tidak ditemukan.'];
+        }
+        $u = $this->activeStudent($userId);
+        if (!$u) {
+            return ['success' => false, 'message' => 'Mahasiswa yang dipilih tidak ditemukan.'];
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            if ($this->isMember($projectId, $userId)) {
+                $this->db->prepare("UPDATE project_members SET role_in_project = 'Ketua' WHERE project_id = ? AND user_id = ?")
+                    ->execute([$projectId, $userId]);
+            } else {
+                if ($this->userHasProject($userId)) {
+                    $this->db->rollBack();
+                    return ['success' => false, 'message' => $u['name'] . ' sudah tergabung di proyek lain.'];
+                }
+                $this->db->prepare(
+                    'INSERT INTO project_members (project_id, user_id, role_in_project, created_at) VALUES (?, ?, ?, NOW())'
+                )->execute([$projectId, $userId, 'Ketua']);
+            }
+
+            $this->db->prepare(
+                "UPDATE project_members SET role_in_project = 'Anggota' WHERE project_id = ? AND user_id != ? AND role_in_project = 'Ketua'"
+            )->execute([$projectId, $userId]);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return ['success' => false, 'message' => 'Gagal menetapkan Ketua. Silakan coba lagi.'];
+        }
+        return ['success' => true, 'message' => $u['name'] . ' ditetapkan sebagai Ketua.'];
+    }
+
+    /**
+     * Lepas seluruh anggota (proyek kembali tersedia).
+     */
+    public function releaseAllMembers(int $projectId): void
+    {
+        $this->db->prepare('DELETE FROM project_members WHERE project_id = ?')->execute([$projectId]);
     }
 
     public function syncMembers(int $projectId, array $userIds): void
