@@ -1,3 +1,7 @@
+<?php
+use App\Helpers\ImageUploader;
+$studentAvatar = ImageUploader::avatarUrl($student['avatar'] ?? null);
+?>
 <a href="/admin/students" class="back-link">← Kembali ke daftar mahasiswa</a>
 
 <div class="page-head mt-2">
@@ -9,7 +13,13 @@
 
 <div class="card" style="max-width:720px;">
     <div class="cell-project mb-2">
-        <span class="avatar"><?= e(initials($student['name'])) ?></span>
+        <span class="avatar">
+            <?php if ($studentAvatar): ?>
+                <img src="<?= e($studentAvatar) ?>" alt="Foto <?= e($student['name']) ?>" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+            <?php else: ?>
+                <?= e(initials($student['name'])) ?>
+            <?php endif; ?>
+        </span>
         <strong><?= e($student['name']) ?></strong>
     </div>
     <div class="table-wrap">

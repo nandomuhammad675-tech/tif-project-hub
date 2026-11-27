@@ -49,11 +49,17 @@ $router->post('/profile/projects/{id}/leave', 'ProfileController@leaveProject', 
 
 // Admin
 $router->get('/admin', 'AdminController@dashboard', ['admin']);
+$router->get('/admin/profile', 'AdminController@profile', ['admin']);
+$router->get('/admin/profile/edit', 'AdminController@profileEdit', ['admin']);
+$router->post('/admin/profile/update', 'AdminController@profileUpdate', ['admin']);
+$router->post('/admin/profile/avatar', 'AdminController@profileAvatarUpdate', ['admin']);
+$router->post('/admin/profile/avatar/remove', 'AdminController@profileAvatarRemove', ['admin']);
 
 // Admin - Students
 $router->get('/admin/students',              'AdminController@students',       ['admin']);
 $router->get('/admin/students/{id}',          'AdminController@studentShow',    ['admin']);
 $router->post('/admin/students/{id}/delete', 'AdminController@studentDelete',  ['admin']);
+$router->post('/admin/students/{id}/activate', 'AdminController@studentActivate', ['admin']);
 
 // Admin - Projects
 $router->get('/admin/projects',              'AdminController@projects',       ['admin']);

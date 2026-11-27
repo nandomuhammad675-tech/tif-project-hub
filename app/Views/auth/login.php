@@ -372,7 +372,7 @@ $showDemo = getenv('APP_ENV') === 'local';
             <?php endif; ?>
         </section>
 
-        <p class="page-foot">&copy; <?= date('Y') ?> TIF Hub · Jurusan Teknologi Informasi</p>
+        <p class="page-foot">COS · Project · © 2026</p>
     </main>
 
     <script>

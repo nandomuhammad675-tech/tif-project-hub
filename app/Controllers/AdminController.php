@@ -16,6 +16,138 @@ use App\Helpers\ImageUploader;
 
 class AdminController extends Controller
 {
+    public function profile(): void
+    {
+        Auth::requireAdmin();
+        $row = (new User())->find((int) Auth::id());
+        if (!$row) {
+            Session::flash('error', 'Profil administrator tidak ditemukan.');
+            $this->redirect('/admin');
+        }
+
+        $this->view('admin/profile', [
+            'title'  => 'Profil Administrator - TIF Hub',
+            'user'   => Auth::user(),
+            'row'    => $row,
+        ]);
+    }
+
+    public function profileEdit(): void
+    {
+        Auth::requireAdmin();
+        $row = (new User())->find((int) Auth::id());
+        if (!$row) {
+            Session::flash('error', 'Profil administrator tidak ditemukan.');
+            $this->redirect('/admin');
+        }
+
+        $old = Session::flash('old');
+        $errors = Session::flash('field_errors');
+        $this->view('admin/profile_edit', [
+            'title'  => 'Edit Profil Administrator - TIF Hub',
+            'user'   => Auth::user(),
+            'row'    => $row,
+            'old'    => is_array($old) ? $old : [],
+            'errors' => is_array($errors) ? $errors : [],
+            'csrf'   => Session::getCsrfToken(),
+        ]);
+    }
+
+    public function profileUpdate(): void
+    {
+        Auth::requireAdmin();
+        if (!$this->validateCsrf()) {
+            $this->profileError('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $userId = (int) Auth::id();
+        $userModel = new User();
+        $name = trim((string) $this->input('name', ''));
+        $email = trim((string) $this->input('email', ''));
+        $errors = [];
+
+        if ($name === '') {
+            $errors['name'] = 'Nama lengkap wajib diisi.';
+        } elseif (mb_strlen($name) < 3) {
+            $errors['name'] = 'Nama minimal 3 karakter.';
+        } elseif (mb_strlen($name) > 100) {
+            $errors['name'] = 'Nama maksimal 100 karakter.';
+        }
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Format email tidak valid.';
+        } elseif (mb_strlen($email) > 150) {
+            $errors['email'] = 'Email maksimal 150 karakter.';
+        } else {
+            $existing = $userModel->findByEmail($email);
+            if ($existing && (int) $existing['id'] !== $userId) {
+                $errors['email'] = 'Email ini sudah digunakan akun lain.';
+            }
+        }
+
+        if ($errors) {
+            Session::flash('error', 'Periksa kembali isian profil.');
+            Session::flash('field_errors', $errors);
+            Session::flash('old', ['name' => $name, 'email' => $email]);
+            $this->redirect('/admin/profile/edit');
+        }
+
+        $userModel->update($userId, [
+            'name' => $name,
+            'email' => $email,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        Session::set('user_name', $name);
+        Session::set('user_email', $email);
+        $this->redirectWithSuccess('/admin/profile', 'Biodata administrator berhasil diperbarui.');
+    }
+
+    public function profileAvatarUpdate(): void
+    {
+        Auth::requireAdmin();
+        if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            $this->profileError('Ukuran foto melebihi batas server. Gunakan foto yang lebih kecil.');
+        }
+        if (!$this->validateCsrf()) {
+            $this->profileError('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $result = ImageUploader::saveAvatar('avatar');
+        if ($result['error'] !== null) {
+            $this->profileError($result['error']);
+        }
+
+        $userId = (int) Auth::id();
+        $userModel = new User();
+        $old = $userModel->find($userId)['avatar'] ?? null;
+        $userModel->update($userId, ['avatar' => $result['filename'], 'updated_at' => date('Y-m-d H:i:s')]);
+        ImageUploader::deleteAvatar($old);
+        Session::set('user_avatar', $result['filename']);
+        $this->redirectWithSuccess('/admin/profile/edit', 'Foto profil berhasil diperbarui.');
+    }
+
+    public function profileAvatarRemove(): void
+    {
+        Auth::requireAdmin();
+        if (!$this->validateCsrf()) {
+            $this->profileError('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        $userId = (int) Auth::id();
+        $userModel = new User();
+        $old = $userModel->find($userId)['avatar'] ?? null;
+        $userModel->update($userId, ['avatar' => null, 'updated_at' => date('Y-m-d H:i:s')]);
+        ImageUploader::deleteAvatar($old);
+        Session::set('user_avatar', '');
+        $this->redirectWithSuccess('/admin/profile/edit', 'Foto profil berhasil dihapus.');
+    }
+
+    private function profileError(string $message): void
+    {
+        Session::flash('error', $message);
+        $this->redirect('/admin/profile/edit');
+    }
+
     public function dashboard(): void
     {
         Auth::requireAdmin();
@@ -58,11 +190,28 @@ class AdminController extends Controller
     {
         Auth::requireAdmin();
         $userModel = new User();
+        $allStudents = $userModel->getStudents();
+
+        $perPageRaw = (string) $this->query('per_page', '10');
+        $perPage = in_array($perPageRaw, ['10', '50', '100', 'all'], true) ? $perPageRaw : '10';
+        $total = count($allStudents);
+        $limit = $perPage === 'all' ? $total : (int) $perPage;
+        $page = max(1, (int) $this->query('page', 1));
+        $totalPages = $limit > 0 ? max(1, (int) ceil($total / $limit)) : 1;
+        $page = min($page, $totalPages);
+        $offset = ($page - 1) * $limit;
+        $students = $limit > 0 ? array_slice($allStudents, $offset, $limit) : [];
 
         $this->view('admin/students/index', [
-            'title'    => 'Kelola Mahasiswa - TIF Hub',
-            'user'     => Auth::user(),
-            'students' => $userModel->getStudents(),
+            'title'       => 'Kelola Mahasiswa - TIF Hub',
+            'user'        => Auth::user(),
+            'students'    => $students,
+            'totalStudents' => $total,
+            'perPage'     => $perPage,
+            'page'        => $page,
+            'totalPages'  => $totalPages,
+            'firstShown'  => $total ? $offset + 1 : 0,
+            'lastShown'   => $total ? min($offset + $limit, $total) : 0,
         ]);
     }
 
@@ -97,6 +246,25 @@ class AdminController extends Controller
         if ($student && $student['role'] === 'mahasiswa') {
             $userModel->update((int) $id, ['status' => 'inactive', 'updated_at' => date('Y-m-d H:i:s')]);
             Session::flash('success', 'Akun mahasiswa dinonaktifkan. Riwayat dan tiket tetap tersimpan.');
+        }
+        $this->redirect('/admin/students');
+    }
+
+    public function studentActivate(string $id): void
+    {
+        Auth::requireAdmin();
+        if (!$this->validateCsrf()) {
+            $this->backWithError('Token tidak valid.');
+            return;
+        }
+
+        $userModel = new User();
+        $student = $userModel->find((int) $id);
+        if ($student && $student['role'] === 'mahasiswa') {
+            $userModel->update((int) $id, ['status' => 'active', 'updated_at' => date('Y-m-d H:i:s')]);
+            Session::flash('success', 'Akun mahasiswa berhasil diaktifkan dan dapat login kembali.');
+        } else {
+            Session::flash('error', 'Mahasiswa tidak ditemukan.');
         }
         $this->redirect('/admin/students');
     }

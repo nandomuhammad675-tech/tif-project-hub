@@ -1731,6 +1731,24 @@ table tbody tr:hover td {
   width: 18px;
   height: 18px;
 }
+.side-user .side-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border-radius: 10px;
+  color: inherit;
+}
+.side-user .side-profile:hover {
+  background: transparent;
+  color: inherit;
+}
+.topbar-profile {
+  display: flex;
+  border-radius: 50%;
+}
 
 .admin-main {
   flex: 1;

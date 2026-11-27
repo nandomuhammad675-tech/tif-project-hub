@@ -83,7 +83,7 @@ class User extends Model
     public function getStudents(): array
     {
         $stmt = $this->db->prepare(
-            "SELECT id, nim, name, email, class, semester, status, created_at 
+            "SELECT id, nim, name, email, class, semester, status, avatar, created_at
              FROM users 
              WHERE role = 'mahasiswa' 
              ORDER BY name ASC"

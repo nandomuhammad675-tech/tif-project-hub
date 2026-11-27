@@ -1,6 +1,8 @@
 <?php
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $is = fn(string $p, bool $exact = false) => $exact ? $path === $p : str_starts_with($path, $p);
+use App\Helpers\ImageUploader;
+$adminAvatar = !empty($user['avatar']) ? ImageUploader::avatarUrl($user['avatar']) : null;
 
 $ico = [
     'dash'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
@@ -49,8 +51,10 @@ $ico = [
         </nav>
 
         <div class="side-user">
-            <span class="avatar"><?= e(initials($user['name'] ?? 'Admin')) ?></span>
-            <div class="who"><strong><?= e($user['name'] ?? 'Admin') ?></strong><span>Administrator</span></div>
+            <a href="/admin/profile" class="side-profile" title="Profil Administrator">
+                <span class="avatar"><?php if ($adminAvatar): ?><img src="<?= e($adminAvatar) ?>" alt="Foto <?= e($user['name'] ?? 'Admin') ?>" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><?php else: ?><?= e(initials($user['name'] ?? 'Admin')) ?><?php endif; ?></span>
+                <div class="who"><strong><?= e($user['name'] ?? 'Admin') ?></strong><span>Administrator</span></div>
+            </a>
             <a href="/logout" title="Logout"><?= $ico['logout'] ?></a>
         </div>
     </aside>
@@ -59,14 +63,16 @@ $ico = [
         <div class="topbar">
             <button type="button" id="sidebarToggle" aria-label="Menu"><?= $ico['menu'] ?></button>
             <strong>TIF Hub Admin</strong>
-            <span class="avatar"><?= e(initials($user['name'] ?? 'Admin')) ?></span>
+            <a href="/admin/profile" aria-label="Profil Administrator" class="topbar-profile">
+                <span class="avatar"><?php if ($adminAvatar): ?><img src="<?= e($adminAvatar) ?>" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><?php else: ?><?= e(initials($user['name'] ?? 'Admin')) ?><?php endif; ?></span>
+            </a>
         </div>
 
         <main class="admin-content">
             <?php include __DIR__ . '/../partials/flash_toasts.php'; ?>
             <?= $content ?? '' ?>
         </main>
-        <footer class="admin-footer">TIF Hub Admin · Jurusan Teknologi Informasi · &copy; <?= date('Y') ?></footer>
+        <footer class="admin-footer">COS · Project · © 2026</footer>
     </div>
 </div>
 <?php include __DIR__ . '/../partials/logout_modal.php'; ?>

@@ -42,7 +42,7 @@
 </main>
 <footer class="site-footer">
     <img src="<?= asset('images/logo-jti.png') ?>" alt="JTI">
-    <p>TIF Hub · Jurusan Teknologi Informasi · &copy; <?= date('Y') ?></p>
+    <p>COS · Project · © 2026</p>
 </footer>
 <?php include __DIR__ . '/../partials/logout_modal.php'; ?>
 <?php include __DIR__ . '/../partials/confirm_modal.php'; ?>
